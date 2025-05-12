@@ -1,0 +1,28 @@
+﻿services:
+  sweet-manager-webservice:
+    image: sweetmanagerwebservice:latest
+    build:
+      context: .
+      dockerfile: SweetManagerWebService/Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      DefaultConnection: server=sweet-manager-mysql;user=root;Password=password;database=sweet-manager
+      ASPNETCORE_ENVIRONMENT: Development
+    restart: always
+    depends_on:
+      sweet-manager-mysql:
+        condition: service_healthy
+  sweet-manager-mysql:
+    image: 'mysql:latest'
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_PASSWORD: password
+      MYSQL_DATABASE: sweet-manager
+    restart: always
+    healthcheck:
+      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+      timeout: 10s
+      retries: 10
