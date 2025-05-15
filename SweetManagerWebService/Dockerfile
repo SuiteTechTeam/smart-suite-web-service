@@ -5,12 +5,12 @@ WORKDIR /app
 EXPOSE 5000
 
 ENV ASPNETCORE_URLS=http://+:5000
-ARG ASPNETCORE_ENVIRONMENT=Production
+ARG ASPNETCORE_ENVIRONMENT
 ENV ASPNETCORE_ENVIRONMENT=$ASPNETCORE_ENVIRONMENT
 
-# Create non-root user with specified UID
-ARG APP_UID=1000
+# Check if the user with the specified ID already exists, and if not, create a new user
 RUN if ! id -u $APP_UID > /dev/null 2>&1; then adduser --disabled-password --gecos '' --uid $APP_UID appuser; fi
+USER $APP_UID
 
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build

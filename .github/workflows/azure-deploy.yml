@@ -13,7 +13,7 @@ env:
   IMAGE_NAME: smartsuitewebservice
   IMAGE_TAG: ${{ github.sha }}
   ASPNETCORE_ENVIRONMENT: Production
-  DOCKER_BUILDKIT: 1
+
 
 jobs:
   build-and-deploy:
