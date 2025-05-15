@@ -48,7 +48,9 @@ jobs:
           docker build \
             --build-arg APP_UID="${APP_UID}" \
             --build-arg ASPNETCORE_ENVIRONMENT="${ASPNETCORE_ENVIRONMENT}" \
-            -t ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} .
+            -f SweetManagerWebService/Dockerfile \
+            -t ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} \
+            .
           docker tag ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
           docker tag ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME }}:latest
 
