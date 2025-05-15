@@ -442,17 +442,12 @@ using (var scope = app.Services.CreateScope())
 }
 #endregion
 
-// Configure CORS
-builder.Services.AddCors(options => 
-{
-    options.AddDefaultPolicy(
-        policy => 
-        {
-            policy.AllowAnyOrigin()
-                  .AllowAnyHeader()
-                  .AllowAnyMethod();
-        });
-});
+
+// Configuration cors
+app.UseCors(
+    b => b.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin() 
+);
+
 
 app.UseSwagger();
 
@@ -469,7 +464,5 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
-app.UseCors();
 
 app.Run();
