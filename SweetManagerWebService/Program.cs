@@ -379,18 +379,34 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-#region Ensure Database Created (COMPILE AppDbContext)
-// Verify Database Objects are created
+#region Database Initialization
+// Only check database connection without recreating the schema
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<SweetManagerContext>();
     
-    // Only ensure the database is created if it doesn't exist
-    // This preserves existing data rather than deleting and recreating it
-    context.Database.EnsureCreated();
+    // Check if database connection works without recreating schema
+    try
+    {
+        // Only check if we can connect to the database
+        var canConnect = context.Database.CanConnect();
+        if (!canConnect)
+        {
+            // Only create database if it cannot connect
+            context.Database.EnsureCreated();
+            Console.WriteLine("Database created as it did not exist.");
+        }
+        else
+        {
+            Console.WriteLine("Database connection successful - using existing database.");
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Database connection error: {ex.Message}");
+    }
 }
-
 #endregion
 
 #region Run DatabaseInitializer
