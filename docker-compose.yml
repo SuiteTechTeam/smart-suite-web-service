@@ -7,7 +7,7 @@
     ports:
       - "5000:5000"
     environment:
-      DefaultConnection: server=sweet-manager-mysql;user=root;Password=password;database=sweet-manager
+      DefaultConnection: server=sweet-manager-mysql;user=root;Password=password;database=smart-suite
       ASPNETCORE_ENVIRONMENT: Development
     restart: always
     depends_on:
@@ -20,7 +20,7 @@
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_PASSWORD: password
-      MYSQL_DATABASE: sweet-manager
+      MYSQL_DATABASE: smart-suite
     restart: always
     healthcheck:
       test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
