@@ -16,17 +16,15 @@ public class WorkerCommandService(IUnitOfWork unitOfWork,
     IWorkerCredentialRepository workerCredentialRepository,
     ITokenService tokenService
     ) : IWorkerCommandService
-{
-    public async Task<bool> Handle(SignUpUserCommand command)
+{    public async Task<bool> Handle(SignUpUserCommand command)
     {
         try
         {
             if (await workerRepository.FindByEmail(command.Email) is not null)
                 throw new EmailAlreadyExistException();
             
-            // Add Worker
-
-            await workerRepository.AddAsync(new Worker(command.Id, command.Username, command.Name, command.Surname,
+            // Add Worker - pass 0 as ID to let DB auto-generate it
+            await workerRepository.AddAsync(new Worker(0, command.Username, command.Name, command.Surname,
                 3, command.Phone,
                 command.Email, command.State));
 
@@ -107,6 +105,18 @@ public class WorkerCommandService(IUnitOfWork unitOfWork,
         catch (Exception ex)
         {
             throw new Exception(ex.Message);
+        }
+    }
+
+    public async Task<Worker?> GetUserByEmail(string email)
+    {
+        try
+        {
+            return await workerRepository.FindByEmail(email);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"An error occurred while retrieving the user: {ex.Message}");
         }
     }
 }

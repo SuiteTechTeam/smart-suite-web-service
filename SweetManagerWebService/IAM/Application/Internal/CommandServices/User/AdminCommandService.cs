@@ -14,7 +14,7 @@ public class AdminCommandService(IUnitOfWork unitOfWork, IAdminRepository adminR
     IAdminCredentialRepository adminCredentialRepository, 
     IHashingService hashingService, 
     ITokenService tokenService) : IAdminCommandService
-{
+{    
     public async Task<bool> Handle(SignUpUserCommand command)
     {
         try
@@ -22,9 +22,8 @@ public class AdminCommandService(IUnitOfWork unitOfWork, IAdminRepository adminR
             if (await adminRepository.FindByEmail(command.Email) is not null)
                 throw new EmailAlreadyExistException();
             
-            // Add Admin
-
-            await adminRepository.AddAsync(new Admin(command.Id, command.Username, command.Email, 2,
+            // Add Admin - pass 0 as ID to let DB auto-generate it
+            await adminRepository.AddAsync(new Admin(0, command.Username, command.Email, 2,
                 command.Name, command.Surname, command.Phone, command.State));
 
             await unitOfWork.CompleteAsync();
@@ -104,6 +103,18 @@ public class AdminCommandService(IUnitOfWork unitOfWork, IAdminRepository adminR
         catch (Exception ex)
         {
             throw new Exception(ex.Message);
+        }
+    }
+
+    public async Task<Admin?> GetUserByEmail(string email)
+    {
+        try
+        {
+            return await adminRepository.FindByEmail(email);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"An error occurred while retrieving the user: {ex.Message}");
         }
     }
 }

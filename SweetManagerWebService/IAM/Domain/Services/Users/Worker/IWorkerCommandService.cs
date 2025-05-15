@@ -11,4 +11,5 @@ public interface IWorkerCommandService
 
     Task<dynamic?> Handle(SignInCommand command);
     
+    Task<SweetManagerWebService.IAM.Domain.Model.Aggregates.Worker?> GetUserByEmail(string email);
 }

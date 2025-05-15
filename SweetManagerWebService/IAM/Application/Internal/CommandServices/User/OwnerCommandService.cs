@@ -15,18 +15,16 @@ public class OwnerCommandService(IUnitOfWork unitOfWork,
     IHashingService hashingService,
     IOwnerCredentialRepository OwnerCredentialRepository,
     ITokenService tokenService) : IOwnerCommandService
-{
-    public async Task<bool> Handle(SignUpUserCommand command)
+{    public async Task<bool> Handle(SignUpUserCommand command)
     {
         try
         {
             if (await ownerRepository.FindByEmail(command.Email) is not null)
                 throw new EmailAlreadyExistException();
             
-            // Add Owner 
-            await ownerRepository.AddAsync(new Owner(command.Id, command.Username, command.Name, command.Surname, 1
-                ,command.Phone,
-                command.Email, command.State));
+            // Add Owner - pass 0 as ID to let DB auto-generate it
+            await ownerRepository.AddAsync(new Owner(0, command.Username, command.Name, command.Surname, 1,
+                command.Phone, command.Email, command.State));
 
             await unitOfWork.CompleteAsync();
 
@@ -101,6 +99,18 @@ public class OwnerCommandService(IUnitOfWork unitOfWork,
         catch (Exception ex)
         {
             throw new Exception(ex.Message);
+        }
+    }
+
+    public async Task<Owner?> GetUserByEmail(string email)
+    {
+        try
+        {
+            return await ownerRepository.FindByEmail(email);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"An error occurred while retrieving the user: {ex.Message}");
         }
     }
 }

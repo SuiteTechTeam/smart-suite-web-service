@@ -22,8 +22,7 @@ public class AuthenticationController(IAdminCommandService adminCommandService,
     IWorkerCredentialCommandService workerCredentialCommandService,
     IOwnerCommandService ownerCommandService,
     IOwnerCredentialCommandService ownerCredentialCommandService) : ControllerBase
-{
-    [HttpPost("sign-up-admin")]
+{    [HttpPost("sign-up-admin")]
     [AllowAnonymous]
     public async Task<IActionResult> SignUpAdmin([FromBody] SignUpUserResource resource)
     {
@@ -31,9 +30,16 @@ public class AuthenticationController(IAdminCommandService adminCommandService,
         {
             var signUpCommand = SignUpUserCommandFromResourceAssembler.ToCommandFromResource(resource);
 
+            // First create the user
             await adminCommandService.Handle(signUpCommand);
-
-            await adminCredentialCommandService.Handle(new(signUpCommand.Id, resource.Password));
+            
+            // Get the newly created user by email
+            var admin = await adminCommandService.GetUserByEmail(signUpCommand.Email);
+            if (admin == null)
+                throw new Exception("Error creating admin account");
+            
+            // Then create the credentials
+            await adminCredentialCommandService.Handle(new(admin.Id, resource.Password));
 
             return Ok("User created correctly!");
         }
@@ -41,9 +47,7 @@ public class AuthenticationController(IAdminCommandService adminCommandService,
         {
             return BadRequest(ex.Message);
         }
-    }
-
-    [HttpPost("sign-up-worker")]
+    }[HttpPost("sign-up-worker")]
     [AllowAnonymous]
     public async Task<IActionResult> SignUpWorker([FromBody] SignUpUserResource resource)
     {
@@ -51,9 +55,16 @@ public class AuthenticationController(IAdminCommandService adminCommandService,
         {
             var signUpCommand = SignUpUserCommandFromResourceAssembler.ToCommandFromResource(resource);
 
+            // First create the worker
             await workerCommandService.Handle(signUpCommand);
-
-            await workerCredentialCommandService.Handle(new(resource.Id, resource.Password));
+            
+            // Use FindIdByEmail to get the new user's ID
+            var worker = await workerCommandService.GetUserByEmail(signUpCommand.Email);
+            if (worker == null)
+                throw new Exception("Error creating worker account");
+                
+            // Then create credentials with the new ID
+            await workerCredentialCommandService.Handle(new(worker.Id, resource.Password));
 
             return Ok("User created correctly!");
         }
@@ -61,9 +72,7 @@ public class AuthenticationController(IAdminCommandService adminCommandService,
         {
             return BadRequest(ex.Message);
         }
-    }
-
-    [HttpPost("sign-up-owner")]
+    }    [HttpPost("sign-up-owner")]
     [AllowAnonymous]
     public async Task<IActionResult> SignUpOwner([FromBody] SignUpUserResource resource)
     {
@@ -73,7 +82,12 @@ public class AuthenticationController(IAdminCommandService adminCommandService,
 
             await ownerCommandService.Handle(signUpCommand);
 
-            await ownerCredentialCommandService.Handle(new(resource.Id, resource.Password));
+            // Get the newly created user by email
+            var owner = await ownerCommandService.GetUserByEmail(signUpCommand.Email);
+            if (owner == null)
+                throw new Exception("Error creating owner account");
+
+            await ownerCredentialCommandService.Handle(new(owner.Id, resource.Password));
 
             return Ok("User created correctly!");
         }

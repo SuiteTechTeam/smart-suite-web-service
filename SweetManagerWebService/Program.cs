@@ -385,8 +385,10 @@ using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<SweetManagerContext>();
-    context.Database.EnsureDeleted(); // Drop the database if it exists
-    context.Database.EnsureCreated(); // Create the database with the current schema
+    
+    // Only ensure the database is created if it doesn't exist
+    // This preserves existing data rather than deleting and recreating it
+    context.Database.EnsureCreated();
 }
 
 #endregion

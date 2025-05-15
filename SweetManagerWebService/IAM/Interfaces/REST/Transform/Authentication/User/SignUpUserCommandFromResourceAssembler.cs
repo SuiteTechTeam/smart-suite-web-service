@@ -7,7 +7,7 @@ public static class SignUpUserCommandFromResourceAssembler
 {
     public static SignUpUserCommand ToCommandFromResource(SignUpUserResource resource)
     {
-        return new(resource.Id,  resource.Username, resource.Name, resource.Surname, resource.Email,
+        return new SignUpUserCommand(resource.Username, resource.Name, resource.Surname, resource.Email,
             resource.Phone, resource.State, resource.Password);
     }
 }
