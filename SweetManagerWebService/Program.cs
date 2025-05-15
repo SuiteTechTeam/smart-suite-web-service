@@ -394,6 +394,7 @@ using (var scope = app.Services.CreateScope())
         if (!canConnect)
         {
             // Only create database if it cannot connect
+            Console.WriteLine("Cannot connect to database. Will attempt to create it.");
             context.Database.EnsureCreated();
             Console.WriteLine("Database created as it did not exist.");
         }
@@ -412,17 +413,32 @@ using (var scope = app.Services.CreateScope())
 #region Run DatabaseInitializer
 using (var scope = app.Services.CreateScope())
 {
-    var roleInitializer = scope.ServiceProvider.GetRequiredService<RolesInitializer>();
-
-    var typeReportInitializer = scope.ServiceProvider.GetRequiredService<TypeReportsInitializer>();
-
-    var notificationInitializer = scope.ServiceProvider.GetRequiredService<TypeNotificationsInitializer>();
+    var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<SweetManagerContext>();
+    bool shouldInitializeData = false;
     
-    roleInitializer.InitializeAsync().Wait();
-
-    typeReportInitializer.InitializeAsync().Wait();
-
-    notificationInitializer.InitializeAsync().Wait();
+    // Check if we need to initialize roles and other data
+    try {
+        // Only initialize data if tables are empty
+        shouldInitializeData = !(await context.Set<SweetManagerWebService.IAM.Domain.Model.Entities.Roles.Role>().AnyAsync());
+    } catch {
+        // If we can't query the Role table, it probably doesn't exist yet
+        shouldInitializeData = true;
+    }
+    
+    if (shouldInitializeData) {
+        Console.WriteLine("Initializing reference data...");
+        var roleInitializer = services.GetRequiredService<RolesInitializer>();
+        var typeReportInitializer = services.GetRequiredService<TypeReportsInitializer>();
+        var notificationInitializer = services.GetRequiredService<TypeNotificationsInitializer>();
+        
+        await roleInitializer.InitializeAsync();
+        await typeReportInitializer.InitializeAsync();
+        await notificationInitializer.InitializeAsync();
+        Console.WriteLine("Reference data initialization complete.");
+    } else {
+        Console.WriteLine("Skipping data initialization - database already contains data.");
+    }
 }
 #endregion
 

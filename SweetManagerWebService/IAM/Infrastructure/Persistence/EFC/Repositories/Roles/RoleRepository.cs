@@ -1,4 +1,5 @@
-﻿using SweetManagerWebService.IAM.Domain.Model.Entities.Roles;
+﻿using Microsoft.EntityFrameworkCore;
+using SweetManagerWebService.IAM.Domain.Model.Entities.Roles;
 using SweetManagerWebService.IAM.Domain.Repositories.Roles;
 using SweetManagerWebService.Shared.Infrastructure.Persistence.EFC.Configuration;
 using SweetManagerWebService.Shared.Infrastructure.Persistence.EFC.Repositories;
@@ -8,23 +9,17 @@ namespace SweetManagerWebService.IAM.Infrastructure.Persistence.EFC.Repositories
 public class RoleRepository(SweetManagerContext context) : BaseRepository<Role>(context) , IRoleRepository
 {
     public async Task<IEnumerable<Role>> FindAllAsync()
-        => await Task.Run(() => (
-            from rl in Context.Set<Role>().ToList()
-            select rl
-        ).ToList());
+        => await Context.Set<Role>().ToListAsync();
 
     public async Task<Role?> FindByName(string name)
-        => await Task.Run(() => (
-            from rl in Context.Set<Role>().ToList()
-            where rl.Name.Equals(name)
-            select rl
-        ).FirstOrDefault());
+        => await Context.Set<Role>()
+            .Where(rl => rl.Name == name)
+            .FirstOrDefaultAsync();
     
     public async Task<int?> FindIdByName(string name)
-        => await Task.Run(() => (
-            from rl in Context.Set<Role>().ToList()
-            where rl.Name.Equals(name)
-            select rl.Id
-        ).FirstOrDefault());
+        => await Context.Set<Role>()
+            .Where(rl => rl.Name == name)
+            .Select(rl => rl.Id)
+            .FirstOrDefaultAsync();
 
 }
