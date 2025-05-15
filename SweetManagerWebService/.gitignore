@@ -1,0 +1,7 @@
+﻿# Ignorar archivos sensibles
+SweetManagerIotWebService.API/appsettings.json
+SweetManagerIotWebService.API/appsettings.Development.json
+SweetManagerIotWebService.API/SweetManagerIotWebService.API.csproj
+
+# Ignorar archivos de Rider / JetBrains
+.idea/

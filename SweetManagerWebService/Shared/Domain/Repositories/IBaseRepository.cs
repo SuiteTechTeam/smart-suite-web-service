@@ -1,10 +1,11 @@
-namespace sweetmanager.API.Shared.Domain.Repositories;
-
-public interface IBaseRepository<TEntity>
+﻿namespace SweetManagerIotWebService.API.Shared.Domain.Repositories
 {
-    Task AddAsync(TEntity entity);
-    Task<TEntity?> FindByIdAsync(int id);
-    void Update(TEntity entity);
-    void Remove(TEntity entity);
-    Task<IEnumerable<TEntity>> ListAsync();
+    public interface IBaseRepository<TEntity>
+    {
+        Task AddAsync(TEntity entity);
+        Task<TEntity?> FindByIdAsync(int id);
+        void Update(TEntity entity);
+        void Remove(TEntity entity);
+        Task<IEnumerable<TEntity>> ListAsync();
+    }
 }

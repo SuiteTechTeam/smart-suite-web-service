@@ -1,695 +1,582 @@
 ﻿using EntityFrameworkCore.CreatedUpdatedDate.Extensions;
 using Microsoft.EntityFrameworkCore;
-using SweetManagerWebService.Commerce.Domain.Model.Aggregates;
-using SweetManagerWebService.Commerce.Domain.Model.Entities.Contracts;
-using SweetManagerWebService.Commerce.Domain.Model.Entities.Payments;
-using SweetManagerWebService.Communication.Domain.Model.Aggregates;
-using SweetManagerWebService.Communication.Domain.Model.Entities;
-using SweetManagerWebService.IAM.Domain.Model.Aggregates;
-using SweetManagerWebService.IAM.Domain.Model.Entities.Assignments;
-using SweetManagerWebService.IAM.Domain.Model.Entities.Credentials;
-using SweetManagerWebService.IAM.Domain.Model.Entities.Roles;
-using SweetManagerWebService.Monitoring.Domain.Model.Aggregates;
-using SweetManagerWebService.Monitoring.Domain.Model.Entities;
-using SweetManagerWebService.Profiles.Domain.Model.Aggregates;
-using SweetManagerWebService.Profiles.Domain.Model.Entities;
-using SweetManagerWebService.ResourceManagement.Domain.Model.Aggregates;
-using SweetManagerWebService.ResourceManagement.Domain.Model.Entities;
-using SweetManagerWebService.SupplyManagement.Domain.Model.Aggregates;
-using SweetManagerWebService.SupplyManagement.Domain.Model.Entities;
+using SweetManagerIotWebService.API.Commerce.Domain.Model.Aggregates;
+using SweetManagerIotWebService.API.Commerce.Domain.Model.Entities;
+using SweetManagerIotWebService.API.Communication.Domain.Model.Aggregates;
+using SweetManagerIotWebService.API.IAM.Domain.Model.Aggregates;
+using SweetManagerIotWebService.API.IAM.Domain.Model.Entities.Credentials;
+using SweetManagerIotWebService.API.IAM.Domain.Model.Entities.Preferences;
+using SweetManagerIotWebService.API.IAM.Domain.Model.Entities.Roles;
+using SweetManagerIotWebService.API.Inventory.Domain.Model.Entities;
+using SweetManagerIotWebService.API.OrganizationalManagement.Domain.Model.Aggregates;
+using SweetManagerIotWebService.API.Reservations.Domain.Model.Aggregates;
+using SweetManagerIotWebService.API.Reservations.Domain.Model.Entities;
+using SweetManagerIotWebService.API.Inventory.Domain.Model.Aggregates;
 
-namespace SweetManagerWebService.Shared.Infrastructure.Persistence.EFC.Configuration
+namespace SweetManagerIotWebService.API.Shared.Infrastructure.Persistence.EFC.Configuration;
+
+public partial class SweetManagerContext : DbContext
 {
-    public partial class SweetManagerContext : DbContext
+    public SweetManagerContext()
     {
-        public SweetManagerContext() { }
-
-        protected override void OnConfiguring(DbContextOptionsBuilder builder)
-        {
-            base.OnConfiguring(builder);
-            // Enable Audit Fields Interceptors
-            builder.AddCreatedUpdatedInterceptor();
-        }
-        
-        public SweetManagerContext
-            (DbContextOptions<SweetManagerContext> options)
-            : base(options) { }
-
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<Admin>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PRIMARY");
-
-                entity.ToTable("admins");
-
-                entity.HasIndex(e => e.RolesId, "fk_admins_roles_id");
-
-                entity.Property(e => e.Id).HasColumnName("id");
-                entity.Property(e => e.Email)
-                    .HasMaxLength(100)
-                    .HasColumnName("email");
-                entity.Property(e => e.Name)
-                    .HasMaxLength(50)
-                    .HasColumnName("name");
-                entity.Property(e => e.Phone).HasColumnName("phone");
-                entity.Property(e => e.RolesId).HasColumnName("roles_id");
-                entity.Property(e => e.State)
-                    .HasMaxLength(20)
-                    .HasColumnName("state");
-                entity.Property(e => e.Surname)
-                    .HasMaxLength(50)
-                    .HasColumnName("surname");
-                entity.Property(e => e.Username)
-                    .HasMaxLength(50)
-                    .HasColumnName("username");
-
-                entity.HasOne(d => d.Role).WithMany(p => p.Admins)
-                    .HasForeignKey(d => d.RolesId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("fk_admins_roles_id");
-            });
-
-            modelBuilder.Entity<AdminCredential>(entity =>
-            {
-                entity.HasKey(e => e.AdminsId).HasName("PRIMARY");
-
-                entity.ToTable("admins_credentials");
-
-                entity.Property(e => e.AdminsId).HasColumnName("admins_id");
-                entity.Property(e => e.Code)
-                    .HasMaxLength(50)
-                    .HasColumnName("code");
-
-                entity.HasOne(d => d.Admin).WithOne(p => p.AdminCredential)
-                    .HasForeignKey<AdminCredential>(d => d.AdminsId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("fk_admins_credentials_admins_id");
-            });
-
-            modelBuilder.Entity<AssignmentWorker>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PRIMARY");
-
-                entity.ToTable("assignments_workers");
-
-                entity.HasIndex(e => e.AdminsId, "fk_assignments_workers_admins_id");
-
-                entity.HasIndex(e => e.WorkersAreasId, "fk_assignments_workers_workers_areas_id");
-
-                entity.HasIndex(e => e.WorkersId, "fk_assignments_workers_workers_id");
-
-                entity.Property(e => e.Id).HasColumnName("id");
-                entity.Property(e => e.AdminsId).HasColumnName("admins_id");
-                entity.Property(e => e.FinalDate)
-                    .HasColumnType("datetime")
-                    .HasColumnName("final_date");
-                entity.Property(e => e.StartDate)
-                    .HasColumnType("datetime")
-                    .HasColumnName("start_date");
-                entity.Property(e => e.State)
-                    .HasMaxLength(20)
-                    .HasColumnName("state");
-                entity.Property(e => e.WorkersAreasId).HasColumnName("workers_areas_id");
-                entity.Property(e => e.WorkersId).HasColumnName("workers_id");
-
-                entity.HasOne(d => d.Admin).WithMany(p => p.AssignmentsWorkers)
-                    .HasForeignKey(d => d.AdminsId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("fk_assignments_workers_admins_id");
-
-                entity.HasOne(d => d.WorkerArea).WithMany(p => p.AssignmentsWorkers)
-                    .HasForeignKey(d => d.WorkersAreasId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("fk_assignments_workers_workers_areas_id");
-
-                entity.HasOne(d => d.Worker).WithMany(p => p.AssignmentsWorkers)
-                    .HasForeignKey(d => d.WorkersId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("fk_assignments_workers_workers_id");
-            });
-
-            modelBuilder.Entity<Booking>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PRIMARY");
-
-                entity.ToTable("bookings");
-
-                entity.HasIndex(e => e.PaymentsCustomersId, "fk_bookings_payments_customers_id");
-
-                entity.HasIndex(e => e.RoomsId, "fk_bookings_rooms_id");
-
-                entity.Property(e => e.Id).HasColumnName("id");
-                entity.Property(e => e.Amount)
-                    .HasPrecision(10)
-                    .HasColumnName("amount");
-                entity.Property(e => e.Description)
-                    .HasMaxLength(100)
-                    .HasColumnName("description");
-                entity.Property(e => e.FinalDate)
-                    .HasColumnType("datetime")
-                    .HasColumnName("final_date");
-                entity.Property(e => e.NightCount).HasColumnName("night_count");
-                entity.Property(e => e.PaymentsCustomersId).HasColumnName("payments_customers_id");
-                entity.Property(e => e.PriceRoom)
-                    .HasPrecision(10)
-                    .HasColumnName("price_room");
-                entity.Property(e => e.RoomsId).HasColumnName("rooms_id");
-                entity.Property(e => e.StartDate)
-                    .HasColumnType("datetime")
-                    .HasColumnName("start_date");
-                entity.Property(e => e.State)
-                    .HasMaxLength(20)
-                    .HasColumnName("state");
-
-                entity.HasOne(d => d.PaymentCustomer).WithMany(p => p.Bookings)
-                    .HasForeignKey(d => d.PaymentsCustomersId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("fk_bookings_payments_customers_id");
-
-                entity.HasOne(d => d.Room).WithMany(p => p.Bookings)
-                    .HasForeignKey(d => d.RoomsId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("fk_bookings_rooms_id");
-            });
-
-            modelBuilder.Entity<ContractOwner>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PRIMARY");
-
-                entity.ToTable("contracts_owners");
-
-                entity.HasIndex(e => e.OwnersId, "fk_contracts_owners_owners_id");
-
-                entity.HasIndex(e => e.SubscriptionsId, "fk_contracts_owners_subscriptions_id");
-
-                entity.Property(e => e.Id).HasColumnName("id");
-                entity.Property(e => e.FinalDate)
-                    .HasColumnType("datetime")
-                    .HasColumnName("final_date");
-                entity.Property(e => e.OwnersId).HasColumnName("owners_id");
-                entity.Property(e => e.StartDate)
-                    .HasColumnType("datetime")
-                    .HasColumnName("start_date");
-                entity.Property(e => e.State)
-                    .HasMaxLength(20)
-                    .HasColumnName("state");
-                entity.Property(e => e.SubscriptionsId).HasColumnName("subscriptions_id");
-
-                entity.HasOne(d => d.Owner).WithMany(p => p.ContractsOwners)
-                    .HasForeignKey(d => d.OwnersId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("fk_contracts_owners_owners_id");
-
-                entity.HasOne(d => d.Subscription).WithMany(p => p.ContractsOwners)
-                    .HasForeignKey(d => d.SubscriptionsId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("fk_contracts_owners_subscriptions_id");
-            });
-
-            modelBuilder.Entity<Customer>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PRIMARY");
-
-                entity.ToTable("customers");
-
-                entity.Property(e => e.Id).HasColumnName("id");
-                entity.Property(e => e.Email)
-                    .HasMaxLength(100)
-                    .HasColumnName("email");
-                entity.Property(e => e.Name)
-                    .HasMaxLength(50)
-                    .HasColumnName("name");
-                entity.Property(e => e.Phone).HasColumnName("phone");
-                entity.Property(e => e.State)
-                    .HasMaxLength(20)
-                    .HasColumnName("state");
-                entity.Property(e => e.Surname)
-                    .HasMaxLength(50)
-                    .HasColumnName("surname");
-                entity.Property(e => e.Username)
-                    .HasMaxLength(50)
-                    .HasColumnName("username");
-            });
-
-            modelBuilder.Entity<Hotel>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PRIMARY");
-
-                entity.ToTable("hotels");
-
-                entity.HasIndex(e => e.OwnersId, "fk_hotels_owners_id");
-
-                entity.Property(e => e.Id).HasColumnName("id");
-                entity.Property(e => e.Address)
-                    .HasMaxLength(50)
-                    .HasColumnName("address");
-                entity.Property(e => e.Description)
-                    .HasMaxLength(100)
-                    .HasColumnName("description");
-                entity.Property(e => e.Email)
-                    .HasMaxLength(100)
-                    .HasColumnName("email");
-                entity.Property(e => e.Name)
-                    .HasMaxLength(50)
-                    .HasColumnName("name");
-                entity.Property(e => e.OwnersId).HasColumnName("owners_id");
-                entity.Property(e => e.Phone).HasColumnName("phone");
-
-                entity.HasOne(d => d.Owner).WithMany(p => p.Hotels)
-                    .HasForeignKey(d => d.OwnersId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("fk_hotels_owners_id");
-            });
-
-            modelBuilder.Entity<Notification>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PRIMARY");
-
-                entity.ToTable("notifications");
-
-                entity.HasIndex(e => e.AdminsId, "fk_notifications_admins_id");
-
-                entity.HasIndex(e => e.OwnersId, "fk_notifications_owners_id");
-
-                entity.HasIndex(e => e.TypesNotificationsId, "fk_notifications_types_notifications_id");
-
-                entity.HasIndex(e => e.WorkersId, "fk_notifications_workers_id");
-
-                entity.Property(e => e.Id).HasColumnName("id");
-                entity.Property(e => e.AdminsId).HasColumnName("admins_id");
-                entity.Property(e => e.Description)
-                    .HasMaxLength(200)
-                    .HasColumnName("description");
-                entity.Property(e => e.OwnersId).HasColumnName("owners_id");
-                entity.Property(e => e.Title)
-                    .HasMaxLength(50)
-                    .HasColumnName("title");
-                entity.Property(e => e.TypesNotificationsId).HasColumnName("types_notifications_id");
-                entity.Property(e => e.WorkersId).HasColumnName("workers_id");
-
-                entity.HasOne(d => d.Admin).WithMany(p => p.Notifications)
-                    .HasForeignKey(d => d.AdminsId)
-                    .HasConstraintName("fk_notifications_admins_id");
-
-                entity.HasOne(d => d.Owner).WithMany(p => p.Notifications)
-                    .HasForeignKey(d => d.OwnersId)
-                    .HasConstraintName("fk_notifications_owners_id");
-
-                entity.HasOne(d => d.TypeNotification).WithMany(p => p.Notifications)
-                    .HasForeignKey(d => d.TypesNotificationsId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("fk_notifications_types_notifications_id");
-
-                entity.HasOne(d => d.Worker).WithMany(p => p.Notifications)
-                    .HasForeignKey(d => d.WorkersId)
-                    .HasConstraintName("fk_notifications_workers_id");
-            });
-
-            modelBuilder.Entity<Owner>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PRIMARY");
-
-                entity.ToTable("owners");
-
-                entity.HasIndex(e => e.RolesId, "fk_owners_roles_id");
-                
-                entity.Property(e => e.Id).HasColumnName("id");
-                entity.Property(e => e.Email)
-                    .HasMaxLength(100)
-                    .HasColumnName("email");
-                entity.Property(e => e.Name)
-                    .HasMaxLength(50)
-                    .HasColumnName("name");
-                entity.Property(e => e.RolesId).HasColumnName("roles_id");
-                entity.Property(e => e.Phone).HasColumnName("phone");
-                entity.Property(e => e.State)
-                    .HasMaxLength(20)
-                    .HasColumnName("state");
-                entity.Property(e => e.Surname)
-                    .HasMaxLength(50)
-                    .HasColumnName("surname");
-                entity.Property(e => e.Username)
-                    .HasMaxLength(50)
-                    .HasColumnName("username");
-                
-                entity.HasOne(d => d.Role).WithMany(p => p.Owners)
-                    .HasForeignKey(d => d.RolesId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("fk_owners_roles_id");
-            });
-
-            modelBuilder.Entity<OwnerCredential>(entity =>
-            {
-                entity.HasKey(e => e.OwnersId).HasName("PRIMARY");
-
-                entity.ToTable("owners_credentials");
-
-                entity.Property(e => e.OwnersId).HasColumnName("owners_id");
-                entity.Property(e => e.Code)
-                    .HasMaxLength(50)
-                    .HasColumnName("code");
-
-                entity.HasOne(d => d.Owner).WithOne(p => p.OwnerCredential)
-                    .HasForeignKey<OwnerCredential>(d => d.OwnersId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("fk_owners_credentials_owners_id");
-            });
-
-            modelBuilder.Entity<PaymentCustomer>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PRIMARY");
-
-                entity.ToTable("payments_customers");
-
-                entity.HasIndex(e => e.CustomersId, "fk_payments_customers_customers_id");
-
-                entity.Property(e => e.Id).HasColumnName("id");
-                entity.Property(e => e.CustomersId).HasColumnName("customers_id");
-                entity.Property(e => e.FinalAmount)
-                    .HasPrecision(10)
-                    .HasColumnName("final_amount");
-
-                entity.HasOne(d => d.Customer).WithMany(p => p.PaymentsCustomers)
-                    .HasForeignKey(d => d.CustomersId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("fk_payments_customers_customers_id");
-            });
-
-            modelBuilder.Entity<PaymentOwner>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PRIMARY");
-
-                entity.ToTable("payments_owners");
-
-                entity.HasIndex(e => e.OwnersId, "fk_payments_owners_owners_id");
-
-                entity.Property(e => e.Id).HasColumnName("id");
-                entity.Property(e => e.Description)
-                    .HasMaxLength(200)
-                    .HasColumnName("description");
-                entity.Property(e => e.FinalAmount)
-                    .HasPrecision(10)
-                    .HasColumnName("final_amount");
-                entity.Property(e => e.OwnersId).HasColumnName("owners_id");
-
-                entity.HasOne(d => d.Owner).WithMany(p => p.PaymentsOwners)
-                    .HasForeignKey(d => d.OwnersId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("fk_payments_owners_owners_id");
-            });
-
-            modelBuilder.Entity<Provider>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PRIMARY");
-
-                entity.ToTable("providers");
-
-                entity.Property(e => e.Id).HasColumnName("id");
-                entity.Property(e => e.Address)
-                    .HasMaxLength(100)
-                    .HasColumnName("address");
-                entity.Property(e => e.Email)
-                    .HasMaxLength(100)
-                    .HasColumnName("email");
-                entity.Property(e => e.Name)
-                    .HasMaxLength(50)
-                    .HasColumnName("name");
-                entity.Property(e => e.Phone).HasColumnName("phone");
-                entity.Property(e => e.State)
-                    .HasMaxLength(20)
-                    .HasColumnName("state");
-            });
-
-            modelBuilder.Entity<Report>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PRIMARY");
-
-                entity.ToTable("reports");
-
-                entity.HasIndex(e => e.AdminsId, "fk_reports_admins_id");
-
-                entity.HasIndex(e => e.TypesReportsId, "fk_reports_types_reports_id");
-
-                entity.HasIndex(e => e.WorkersId, "fk_reports_workers_id");
-
-                entity.Property(e => e.Id).HasColumnName("id");
-                entity.Property(e => e.AdminsId).HasColumnName("admins_id");
-                entity.Property(e => e.Description)
-                    .HasMaxLength(200)
-                    .HasColumnName("description");
-                entity.Property(e => e.FileUrl)
-                    .HasMaxLength(6000)
-                    .HasColumnName("file_url");
-                entity.Property(e => e.Title)
-                    .HasMaxLength(50)
-                    .HasColumnName("title");
-                entity.Property(e => e.TypesReportsId).HasColumnName("types_reports_id");
-                entity.Property(e => e.WorkersId).HasColumnName("workers_id");
-
-                entity.HasOne(d => d.Admin).WithMany(p => p.Reports)
-                    .HasForeignKey(d => d.AdminsId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("fk_reports_admins_id");
-
-                entity.HasOne(d => d.TypeReport).WithMany(p => p.Reports)
-                    .HasForeignKey(d => d.TypesReportsId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("fk_reports_types_reports_id");
-
-                entity.HasOne(d => d.Worker).WithMany(p => p.Reports)
-                    .HasForeignKey(d => d.WorkersId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("fk_reports_workers_id");
-            });
-
-            modelBuilder.Entity<Role>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PRIMARY");
-
-                entity.ToTable("roles");
-
-                entity.Property(e => e.Id).HasColumnName("id");
-                entity.Property(e => e.Name)
-                    .HasMaxLength(50)
-                    .HasColumnName("name");
-                entity.Property(e => e.CreatedDate)
-                    .HasColumnType("datetime")
-                    .HasColumnName("CreatedAt");
-                entity.Property(e => e.UpdatedDate)
-                    .HasColumnType("datetime")
-                    .HasColumnName("UpdatedAt");
-            });
-
-            modelBuilder.Entity<Room>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PRIMARY");
-
-                entity.ToTable("rooms");
-
-                entity.HasIndex(e => e.HotelsId, "fk_rooms_hotels_id");
-
-                entity.HasIndex(e => e.TypesRoomsId, "fk_rooms_types_rooms_id");
-
-                entity.Property(e => e.Id).HasColumnName("id");
-                entity.Property(e => e.HotelsId).HasColumnName("hotels_id");
-                entity.Property(e => e.State)
-                    .HasMaxLength(20)
-                    .HasColumnName("state");
-                entity.Property(e => e.TypesRoomsId).HasColumnName("types_rooms_id");
-
-                entity.HasOne(d => d.Hotel).WithMany(p => p.Rooms)
-                    .HasForeignKey(d => d.HotelsId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("fk_rooms_hotels_id");
-
-                entity.HasOne(d => d.TypeRoom).WithMany(p => p.Rooms)
-                    .HasForeignKey(d => d.TypesRoomsId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("fk_rooms_types_rooms_id");
-            });
-
-            modelBuilder.Entity<Subscription>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PRIMARY");
-
-                entity.ToTable("subscriptions");
-
-                entity.Property(e => e.Id).HasColumnName("id");
-                entity.Property(e => e.Description)
-                    .HasMaxLength(200)
-                    .HasColumnName("description");
-                entity.Property(e => e.Name)
-                    .HasMaxLength(50)
-                    .HasColumnName("name");
-                entity.Property(e => e.Price)
-                    .HasPrecision(10)
-                    .HasColumnName("price");
-                entity.Property(e => e.State)
-                    .HasMaxLength(20)
-                    .HasColumnName("state");
-            });
-
-            modelBuilder.Entity<SuppliesRequest>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PRIMARY");
-
-                entity.ToTable("supplies_requests");
-
-                entity.HasIndex(e => e.PaymentsOwnersId, "fk_supplies_requests_payments_owners_id");
-
-                entity.HasIndex(e => e.SuppliesId, "fk_supplies_requests_supplies_id");
-
-                entity.Property(e => e.Id).HasColumnName("id");
-                entity.Property(e => e.Amount)
-                    .HasPrecision(10)
-                    .HasColumnName("amount");
-                entity.Property(e => e.Count).HasColumnName("count");
-                entity.Property(e => e.PaymentsOwnersId).HasColumnName("payments_owners_id");
-                entity.Property(e => e.SuppliesId).HasColumnName("supplies_id");
-
-                entity.HasOne(d => d.PaymentOwner).WithMany(p => p.SuppliesRequests)
-                    .HasForeignKey(d => d.PaymentsOwnersId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("fk_supplies_requests_payments_owners_id");
-
-                entity.HasOne(d => d.Supply).WithMany(p => p.SuppliesRequests)
-                    .HasForeignKey(d => d.SuppliesId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("fk_supplies_requests_supplies_id");
-            });
-
-            modelBuilder.Entity<Supply>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PRIMARY");
-
-                entity.ToTable("supplies");
-
-                entity.HasIndex(e => e.ProvidersId, "fk_supplies_providers_id");
-
-                entity.Property(e => e.Id).HasColumnName("id");
-                entity.Property(e => e.Name)
-                    .HasMaxLength(50)
-                    .HasColumnName("name");
-                entity.Property(e => e.Price)
-                    .HasPrecision(10)
-                    .HasColumnName("price");
-                entity.Property(e => e.ProvidersId).HasColumnName("providers_id");
-                entity.Property(e => e.State)
-                    .HasMaxLength(20)
-                    .HasColumnName("state");
-                entity.Property(e => e.Stock).HasColumnName("stock");
-
-                entity.HasOne(d => d.Provider).WithMany(p => p.Supplies)
-                    .HasForeignKey(d => d.ProvidersId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("fk_supplies_providers_id");
-            });
-
-            modelBuilder.Entity<TypeNotification>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PRIMARY");
-
-                entity.ToTable("types_notifications");
-
-                entity.Property(e => e.Id).HasColumnName("id");
-                entity.Property(e => e.Name)
-                    .HasMaxLength(50)
-                    .HasColumnName("name");
-            });
-
-            modelBuilder.Entity<TypeReport>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PRIMARY");
-
-                entity.ToTable("types_reports");
-
-                entity.Property(e => e.Id).HasColumnName("id");
-                entity.Property(e => e.Name)
-                    .HasMaxLength(50)
-                    .HasColumnName("name");
-            });
-
-            modelBuilder.Entity<TypeRoom>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PRIMARY");
-
-                entity.ToTable("types_rooms");
-
-                entity.Property(e => e.Id).HasColumnName("id");
-                entity.Property(e => e.Description)
-                    .HasMaxLength(200)
-                    .HasColumnName("description");
-                entity.Property(e => e.Price)
-                    .HasPrecision(10)
-                    .HasColumnName("price");
-            });
-
-            modelBuilder.Entity<Worker>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PRIMARY");
-
-                entity.ToTable("workers");
-
-                entity.HasIndex(e => e.RolesId, "fk_workers_roles_id");
-
-                entity.Property(e => e.Id).HasColumnName("id");
-                entity.Property(e => e.Email)
-                    .HasMaxLength(100)
-                    .HasColumnName("email");
-                entity.Property(e => e.Name)
-                    .HasMaxLength(50)
-                    .HasColumnName("name");
-                entity.Property(e => e.Phone).HasColumnName("phone");
-                entity.Property(e => e.RolesId).HasColumnName("roles_id");
-                entity.Property(e => e.State)
-                    .HasMaxLength(20)
-                    .HasColumnName("state");
-                entity.Property(e => e.Surname)
-                    .HasMaxLength(50)
-                    .HasColumnName("surname");
-                entity.Property(e => e.Username)
-                    .HasMaxLength(50)
-                    .HasColumnName("username");
-
-                entity.HasOne(d => d.Role).WithMany(p => p.Workers)
-                    .HasForeignKey(d => d.RolesId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("fk_workers_roles_id");
-            });
-
-            modelBuilder.Entity<WorkerArea>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PRIMARY");
-
-                entity.ToTable("workers_areas");
-
-                entity.Property(e => e.Id).HasColumnName("id");
-                entity.Property(e => e.Name)
-                    .HasMaxLength(50)
-                    .HasColumnName("name");
-            });
-
-            modelBuilder.Entity<WorkerCredential>(entity =>
-            {
-                entity.HasKey(e => e.WorkersId).HasName("PRIMARY");
-
-                entity.ToTable("workers_credentials");
-
-                entity.Property(e => e.WorkersId).HasColumnName("workers_id");
-                entity.Property(e => e.Code)
-                    .HasMaxLength(50)
-                    .HasColumnName("code");
-
-                entity.HasOne(d => d.Worker).WithOne(p => p.WorkerCredential)
-                    .HasForeignKey<WorkerCredential>(d => d.WorkersId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("fk_workers_credentials_workers_id");
-            });
-
-            OnModelCreatingPartial(modelBuilder);
-        }
-
-        partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
     }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder builder)
+    {
+        base.OnConfiguring(builder);
+        // Enable Audit Fields Interceptors
+        builder.AddCreatedUpdatedInterceptor();
+    }
+
+    public SweetManagerContext(DbContextOptions<SweetManagerContext> options)
+        : base(options)
+    {
+    }
+
+    public virtual DbSet<Admin> Admins { get; set; }
+
+    public virtual DbSet<AdminCredential> AdminCredentials { get; set; }
+
+    public virtual DbSet<Booking> Bookings { get; set; }
+
+    public virtual DbSet<ContractOwner> ContractOwners { get; set; }
+
+    public virtual DbSet<Guest> Guests { get; set; }
+
+    public virtual DbSet<GuestCredential> GuestCredentials { get; set; }
+
+    public virtual DbSet<GuestPreference> GuestPreferences { get; set; }
+
+    public virtual DbSet<Hotel> Hotels { get; set; }
+
+    public virtual DbSet<Notification> Notifications { get; set; }
+
+    public virtual DbSet<Owner> Owners { get; set; }
+
+    public virtual DbSet<OwnerCredential> OwnerCredentials { get; set; }
+
+    public virtual DbSet<PaymentCustomer> PaymentCustomers { get; set; }
+
+    public virtual DbSet<PaymentOwner> PaymentOwners { get; set; }
+
+    public virtual DbSet<Provider> Providers { get; set; }
+
+    public virtual DbSet<Role> Roles { get; set; }
+
+    public virtual DbSet<Room> Rooms { get; set; }
+
+    public virtual DbSet<Subscription> Subscriptions { get; set; }
+
+    public virtual DbSet<Supply> Supplies { get; set; }
+
+    public virtual DbSet<SupplyRequest> SupplyRequests { get; set; }
+
+    public virtual DbSet<TypeRoom> TypeRooms { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Admin>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("admins");
+
+            entity.HasIndex(e => e.RoleId, "role_id");
+
+            entity.Property(e => e.Id).HasColumnName("id").ValueGeneratedNever();
+            entity.Property(e => e.Email)
+                .HasMaxLength(50)
+                .HasColumnName("email");
+            entity.Property(e => e.Name)
+                .HasMaxLength(100)
+                .HasColumnName("name");
+            entity.Property(e => e.Phone)
+                .HasMaxLength(15)
+                .HasColumnName("phone");
+
+            entity.Property(e => e.RoleId).HasColumnName("role_id");
+            entity.Property(e => e.Surname)
+                .HasMaxLength(100)
+                .HasColumnName("surname");
+
+            entity.Property(e => e.State)
+                .HasMaxLength(50)
+                .HasColumnName("state");
+
+            entity.HasIndex(e => e.HotelId, "hotel_id");
+            entity.Property(e => e.HotelId).HasColumnName("hotel_id");
+
+            entity.HasOne(d => d.Role).WithMany(p => p.Admins)
+                .HasForeignKey(d => d.RoleId)
+                .HasConstraintName("admins_ibfk_1");
+
+            entity.HasOne(d => d.Hotel).WithMany(p => p.Admins)
+                .HasForeignKey(d => d.HotelId)
+                .HasConstraintName("admins_ibfk_2");
+        });
+
+        modelBuilder.Entity<AdminCredential>(entity =>
+        {
+            entity.HasKey(e => e.AdminId).HasName("PRIMARY");
+
+            entity.ToTable("admin_credentials");
+
+            entity.Property(e => e.AdminId).HasColumnName("admin_id").ValueGeneratedNever();
+            entity.Property(e => e.Code)
+                .HasMaxLength(50)
+                .HasColumnName("code");
+
+            entity.HasOne(d => d.Admin).WithOne(p => p.AdminCredential)
+                .HasForeignKey<AdminCredential>(d => d.AdminId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("admin_credentials_ibfk_1");
+        });
+
+        modelBuilder.Entity<Booking>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("bookings");
+
+            entity.HasIndex(e => e.PaymentCustomerId, "payment_customer_id");
+
+            entity.HasIndex(e => e.PreferenceId, "preference_id");
+
+            entity.HasIndex(e => e.RoomId, "room_id");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Amount)
+                .HasPrecision(10)
+                .HasColumnName("amount");
+            entity.Property(e => e.Description)
+                .HasMaxLength(5000)
+                .HasColumnName("description");
+            entity.Property(e => e.FinalDate)
+                .HasColumnType("date")
+                .HasColumnName("final_date");
+            entity.Property(e => e.NightCount).HasColumnName("night_count");
+            entity.Property(e => e.PaymentCustomerId).HasColumnName("payment_customer_id");
+            entity.Property(e => e.PreferenceId).HasColumnName("preference_id");
+            entity.Property(e => e.PriceRoom)
+                .HasPrecision(10)
+                .HasColumnName("price_room");
+            entity.Property(e => e.RoomId).HasColumnName("room_id");
+            entity.Property(e => e.StartDate)
+                .HasColumnType("date")
+                .HasColumnName("start_date");
+            entity.Property(e => e.State)
+                .HasMaxLength(50)
+                .HasColumnName("state");
+
+            entity.HasOne(d => d.PaymentCustomer).WithMany(p => p.Bookings)
+                .HasForeignKey(d => d.PaymentCustomerId)
+                .HasConstraintName("bookings_ibfk_1");
+
+            entity.HasOne(d => d.Preference).WithMany(p => p.Bookings)
+                .HasForeignKey(d => d.PreferenceId)
+                .HasConstraintName("bookings_ibfk_3");
+
+            entity.HasOne(d => d.Room).WithMany(p => p.Bookings)
+                .HasForeignKey(d => d.RoomId)
+                .HasConstraintName("bookings_ibfk_2");
+        });
+
+        modelBuilder.Entity<ContractOwner>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("contract_owners");
+
+            entity.HasIndex(e => e.OwnerId, "owner_id");
+
+            entity.HasIndex(e => e.SubscriptionId, "subscription_id");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.FinalDate)
+                .HasColumnType("date")
+                .HasColumnName("final_date");
+            entity.Property(e => e.OwnerId).HasColumnName("owner_id");
+            entity.Property(e => e.StartDate)
+                .HasColumnType("date")
+                .HasColumnName("start_date");
+            entity.Property(e => e.Status)
+                .HasMaxLength(50)
+                .HasColumnName("status");
+            entity.Property(e => e.SubscriptionId).HasColumnName("subscription_id");
+
+            entity.HasOne(d => d.Owner).WithMany(p => p.ContractOwners)
+                .HasForeignKey(d => d.OwnerId)
+                .HasConstraintName("contract_owners_ibfk_1");
+
+            entity.HasOne(d => d.Subscription).WithMany(p => p.ContractOwners)
+                .HasForeignKey(d => d.SubscriptionId)
+                .HasConstraintName("contract_owners_ibfk_2");
+        });
+
+        modelBuilder.Entity<Guest>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("guests");
+
+            entity.Property(e => e.Id).HasColumnName("id").ValueGeneratedNever();
+
+            entity.HasIndex(e => e.RoleId, "role_id");
+
+            entity.Property(e => e.Email)
+                .HasMaxLength(100)
+                .HasColumnName("email");
+            entity.Property(e => e.Name)
+                .HasMaxLength(50)
+                .HasColumnName("name");
+            entity.Property(e => e.Phone)
+                .HasMaxLength(15)
+                .HasColumnName("phone");
+            entity.Property(e => e.State)
+                .HasDefaultValueSql("'active'")
+                .HasColumnType("enum('ACTIVE','INACTIVE')")
+                .HasColumnName("state");
+            entity.Property(e => e.Surname)
+                .HasMaxLength(50)
+                .HasColumnName("surname");
+
+            entity.HasOne(d => d.Role).WithMany(p => p.Guests)
+                .HasForeignKey(d => d.RoleId)
+                .HasConstraintName("guests_ibfk_1");
+        });
+
+        modelBuilder.Entity<GuestCredential>(entity =>
+        {
+            entity.HasKey(e => e.GuestId).HasName("PRIMARY");
+
+            entity.ToTable("guest_credentials");
+
+            entity.Property(e => e.GuestId).HasColumnName("guest_id").ValueGeneratedNever();
+            entity.Property(e => e.Code)
+                .HasMaxLength(50)
+                .HasColumnName("code");
+
+            entity.HasOne(d => d.Guest).WithOne(p => p.GuestCredential)
+                .HasForeignKey<GuestCredential>(d => d.GuestId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("guest_credentials_ibfk_1");
+        });
+
+        modelBuilder.Entity<GuestPreference>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("guest_preferences");
+
+            entity.HasIndex(e => e.GuestId, "guest_id");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.GuestId).HasColumnName("guest_id");
+            entity.Property(e => e.Temperature).HasColumnName("temperature");
+
+            entity.HasOne(d => d.Guest).WithMany(p => p.GuestPreferences)
+                .HasForeignKey(d => d.GuestId)
+                .HasConstraintName("guest_preferences_ibfk_1");
+        });
+
+        modelBuilder.Entity<Hotel>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("hotels");
+
+            entity.HasIndex(e => e.OwnerId, "owner_id");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Address)
+                .HasMaxLength(500)
+                .HasColumnName("address");
+            entity.Property(e => e.Description)
+                .HasMaxLength(100)
+                .HasColumnName("description");
+            entity.Property(e => e.Email)
+                .HasMaxLength(50)
+                .HasColumnName("email");
+            entity.Property(e => e.Name)
+                .HasMaxLength(50)
+                .HasColumnName("name");
+            entity.Property(e => e.OwnerId).HasColumnName("owner_id");
+            entity.Property(e => e.Phone)
+                .HasMaxLength(15)
+                .HasColumnName("phone");
+
+            entity.HasOne(d => d.Owner).WithMany(p => p.Hotels)
+                .HasForeignKey(d => d.OwnerId)
+                .HasConstraintName("hotels_ibfk_1");
+        });
+
+        modelBuilder.Entity<Notification>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("notifications");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Content)
+                .HasMaxLength(5000)
+                .HasColumnName("content");
+            entity.Property(e => e.ReceiverId).HasColumnName("receiver_id");
+            entity.Property(e => e.SenderId).HasColumnName("sender_id");
+            entity.Property(e => e.SenderType)
+                .HasMaxLength(20)
+                .HasColumnName("sender_type");
+            entity.Property(e => e.Title)
+                .HasMaxLength(100)
+                .HasColumnName("title");
+        });
+
+        modelBuilder.Entity<Owner>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("owners");
+
+            entity.HasIndex(e => e.RoleId, "role_id");
+
+            entity.Property(e => e.Id).HasColumnName("id").ValueGeneratedNever();
+            entity.Property(e => e.Email)
+                .HasMaxLength(50)
+                .HasColumnName("email");
+            entity.Property(e => e.Name)
+                .HasMaxLength(50)
+                .HasColumnName("name");
+            entity.Property(e => e.Phone)
+                .HasMaxLength(15)
+                .HasColumnName("phone");
+            entity.Property(e => e.RoleId).HasColumnName("role_id");
+            entity.Property(e => e.State)
+                .HasMaxLength(50)
+                .HasColumnName("state");
+            entity.Property(e => e.Surname)
+                .HasMaxLength(50)
+                .HasColumnName("surname");
+
+            entity.HasOne(d => d.Role).WithMany(p => p.Owners)
+                .HasForeignKey(d => d.RoleId)
+                .HasConstraintName("owners_ibfk_1");
+        });
+
+        modelBuilder.Entity<OwnerCredential>(entity =>
+        {
+            entity.HasKey(e => e.OwnerId).HasName("PRIMARY");
+
+            entity.ToTable("owner_credentials");
+
+            entity.Property(e => e.OwnerId).HasColumnName("owner_id").ValueGeneratedNever();
+            entity.Property(e => e.Code)
+                .HasMaxLength(50)
+                .HasColumnName("code");
+
+            entity.HasOne(d => d.Owner).WithOne(p => p.OwnerCredential)
+                .HasForeignKey<OwnerCredential>(d => d.OwnerId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("owner_credentials_ibfk_1");
+        });
+
+        modelBuilder.Entity<PaymentCustomer>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("payment_customers");
+
+            entity.HasIndex(e => e.GuestId, "guest_id");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.FinalAmount)
+                .HasPrecision(10)
+                .HasColumnName("final_amount");
+            entity.Property(e => e.GuestId).HasColumnName("guest_id");
+
+            entity.HasOne(d => d.Guest).WithMany(p => p.PaymentCustomers)
+                .HasForeignKey(d => d.GuestId)
+                .HasConstraintName("payment_customers_ibfk_1");
+        });
+
+        modelBuilder.Entity<PaymentOwner>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("payment_owners");
+
+            entity.HasIndex(e => e.OwnerId, "owner_id");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Description)
+                .HasMaxLength(200)
+                .HasColumnName("description");
+            entity.Property(e => e.FinalAmount)
+                .HasPrecision(10)
+                .HasColumnName("final_amount");
+            entity.Property(e => e.OwnerId).HasColumnName("owner_id");
+
+            entity.HasOne(d => d.Owner).WithMany(p => p.PaymentOwners)
+                .HasForeignKey(d => d.OwnerId)
+                .HasConstraintName("payment_owners_ibfk_1");
+        });
+
+        modelBuilder.Entity<Provider>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("providers");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Email)
+                .HasMaxLength(50)
+                .HasColumnName("email");
+            entity.Property(e => e.Name)
+                .HasMaxLength(50)
+                .HasColumnName("name");
+            entity.Property(e => e.Phone)
+                .HasMaxLength(15)
+                .HasColumnName("phone");
+            entity.Property(e => e.State)
+                .HasMaxLength(50)
+                .HasColumnName("state");
+        });
+
+        modelBuilder.Entity<Role>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+
+            entity.ToTable("roles");
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Name)
+                .HasMaxLength(50)
+                .HasColumnName("name");
+        });
+
+        modelBuilder.Entity<Room>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("rooms");
+
+            entity.HasIndex(e => e.HotelId, "hotel_id");
+
+            entity.HasIndex(e => e.TypeRoomId, "type_room_id");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.HotelId).HasColumnName("hotel_id");
+            entity.Property(e => e.State)
+                .HasDefaultValueSql("'available'")
+                .HasColumnType("enum('available','occupied','maintenance')")
+                .HasColumnName("state");
+            entity.Property(e => e.TypeRoomId).HasColumnName("type_room_id");
+
+            entity.HasOne(d => d.Hotel).WithMany(p => p.Rooms)
+                .HasForeignKey(d => d.HotelId)
+                .HasConstraintName("rooms_ibfk_2");
+
+            entity.HasOne(d => d.TypeRoom).WithMany(p => p.Rooms)
+                .HasForeignKey(d => d.TypeRoomId)
+                .HasConstraintName("rooms_ibfk_1");
+        });
+
+        modelBuilder.Entity<Subscription>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("subscriptions");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Content)
+                .HasMaxLength(200)
+                .HasColumnName("content");
+            entity.Property(e => e.Name)
+                .HasMaxLength(50)
+                .HasColumnName("name");
+            entity.Property(e => e.Price)
+                .HasPrecision(10)
+                .HasColumnName("price");
+            entity.Property(e => e.Status)
+                .HasMaxLength(50)
+                .HasColumnName("status");
+        });
+
+        modelBuilder.Entity<Supply>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("supplies");
+
+            entity.HasIndex(e => e.HotelId, "hotel_id");
+
+            entity.HasIndex(e => e.ProviderId, "provider_id");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.HotelId).HasColumnName("hotel_id");
+            entity.Property(e => e.Name)
+                .HasMaxLength(50)
+                .HasColumnName("name");
+            entity.Property(e => e.Price)
+                .HasPrecision(10)
+                .HasColumnName("price");
+            entity.Property(e => e.ProviderId).HasColumnName("provider_id");
+            entity.Property(e => e.State)
+                .HasMaxLength(50)
+                .HasColumnName("state");
+            entity.Property(e => e.Stock).HasColumnName("stock");
+
+            entity.HasOne(d => d.Hotel).WithMany(p => p.Supplies)
+                .HasForeignKey(d => d.HotelId)
+                .HasConstraintName("supplies_ibfk_2");
+
+            entity.HasOne(d => d.Provider).WithMany(p => p.Supplies)
+                .HasForeignKey(d => d.ProviderId)
+                .HasConstraintName("supplies_ibfk_1");
+        });
+
+        modelBuilder.Entity<SupplyRequest>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("supply_requests");
+
+            entity.HasIndex(e => e.PaymentOwnerId, "payment_owner_id");
+
+            entity.HasIndex(e => e.SupplyId, "supply_id");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Amount)
+                .HasPrecision(10)
+                .HasColumnName("amount");
+            entity.Property(e => e.Count).HasColumnName("count");
+            entity.Property(e => e.PaymentOwnerId).HasColumnName("payment_owner_id");
+            entity.Property(e => e.SupplyId).HasColumnName("supply_id");
+
+            entity.HasOne(d => d.PaymentOwner).WithMany(p => p.SupplyRequests)
+                .HasForeignKey(d => d.PaymentOwnerId)
+                .HasConstraintName("supply_requests_ibfk_1");
+
+            entity.HasOne(d => d.Supply).WithMany(p => p.SupplyRequests)
+                .HasForeignKey(d => d.SupplyId)
+                .HasConstraintName("supply_requests_ibfk_2");
+        });
+
+        modelBuilder.Entity<TypeRoom>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("type_rooms");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Description)
+                .HasMaxLength(500)
+                .HasColumnName("description");
+            entity.Property(e => e.Price)
+                .HasPrecision(10)
+                .HasColumnName("price");
+        });
+
+        OnModelCreatingPartial(modelBuilder);
+    }
+
+    partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }

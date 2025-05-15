@@ -1,12 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using EntityFrameworkCore.CreatedUpdatedDate.Contracts;
 
-namespace SweetManagerWebService.Commerce.Domain.Model.Aggregates;
+namespace SweetManagerIotWebService.API.Commerce.Domain.Model.Aggregates;
 
 public partial class Subscription : IEntityWithCreatedUpdatedDate
 {
-    
-    [Column("created_at")] public DateTimeOffset? CreatedDate { get; set; }
-    
-    [Column("updated_at")] public DateTimeOffset? UpdatedDate { get; set; }
+    [Column("CreatedAt")] public DateTimeOffset? CreatedDate { get; set; }
+
+    [Column("UpdatedAt")] public DateTimeOffset? UpdatedDate { get; set; }
 }

@@ -1,22 +1,47 @@
-using System.Data;
+﻿using System.Data;
 using Dapper;
-using SweetManagerWebService.Commerce.Domain.Repositories.Payments;
+using SweetManagerIotWebService.API.Commerce.Domain.Repositories;
 
-namespace SweetManagerWebService.Commerce.Infrastructure.Persistence.Dapper.Dashboard;
+namespace SweetManagerIotWebService.API.Commerce.Infrastructure.Persistence.Dapper.Dashboard;
 
 public class DashboardRepository(IDbConnection dbConnection) : IDashboardRepository
 {
-    public async Task<IEnumerable<dynamic>> FindComparativeIncomesAsync(int hotelId)
+    public async Task<IEnumerable<dynamic>> FindWeeklyComparativeIncomesAsync(int hotelId)
     {
         string query = $"SELECT " +
-                             $"WEEK(pc.created_at) AS week_number,SUM(pc.final_amount) AS total_income,SUM(po.final_amount) AS total_expense,(SUM(pc.final_amount) - SUM(po.final_amount)) AS total_profit" +
-                             $" FROM payments_customers pc LEFT JOIN payments_owners po ON WEEK(pc.created_at) = WEEK(po.created_at) AND YEAR(pc.created_at) = YEAR(po.created_at)" +
-                             $" JOIN hotels as ho on po.owners_id = ho.owners_id WHERE pc.created_at BETWEEN DATE_SUB(CURDATE(), INTERVAL 4 WEEK) AND CURDATE() AND ho.id = {hotelId}" +
-                             $" GROUP BY WEEK(pc.created_at)" +
-                             $" ORDER BY week_number";
+                       $"WEEK(pc.CreatedAt) AS week_number, " +
+                       $"YEAR(pc.CreatedAt) AS year_number, " +
+                       $"SUM(pc.final_amount) AS total_income, " +
+                       $"SUM(po.final_amount) AS total_expense, " +
+                       $"(SUM(pc.final_amount) - SUM(po.final_amount)) AS total_profit " +
+                       $"FROM payment_customers pc " +
+                       $"LEFT JOIN payment_owners po ON WEEK(pc.CreatedAt) = WEEK(po.CreatedAt) AND YEAR(pc.CreatedAt) = YEAR(po.CreatedAt) " +
+                       $"JOIN hotels ho ON po.owner_id = ho.owner_id " +
+                       $"WHERE ho.id = {hotelId} " +
+                       $"GROUP BY WEEK(pc.CreatedAt), YEAR(pc.CreatedAt) " +
+                       $"ORDER BY year_number, week_number";
 
         var result = await dbConnection.QueryAsync<dynamic>(query, commandType: CommandType.Text);
-
         return result;
     }
+
+    public async Task<IEnumerable<dynamic>> FindMonthlyComparativeIncomesAsync(int hotelId)
+    {
+        string query = $"SELECT " +
+                       $"MONTH(pc.CreatedAt) AS month_number, " +
+                       $"YEAR(pc.CreatedAt) AS year_number, " +
+                       $"SUM(pc.final_amount) AS total_income, " +
+                       $"SUM(po.final_amount) AS total_expense, " +
+                       $"(SUM(pc.final_amount) - SUM(po.final_amount)) AS total_profit " +
+                       $"FROM payment_customers pc " +
+                       $"LEFT JOIN payment_owners po ON MONTH(pc.CreatedAt) = MONTH(po.CreatedAt) AND YEAR(pc.CreatedAt) = YEAR(po.CreatedAt) " +
+                       $"JOIN hotels ho ON po.owner_id = ho.owner_id " +
+                       $"WHERE ho.id = {hotelId} " +
+                       $"GROUP BY MONTH(pc.CreatedAt), YEAR(pc.CreatedAt) " +
+                       $"ORDER BY year_number, month_number";
+
+        var result = await dbConnection.QueryAsync<dynamic>(query, commandType: CommandType.Text);
+        return result;
+    }
+
 }

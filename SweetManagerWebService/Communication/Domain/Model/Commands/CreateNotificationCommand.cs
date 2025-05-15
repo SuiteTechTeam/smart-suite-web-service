@@ -1,3 +1,3 @@
-namespace SweetManagerWebService.Communication.Domain.Model.Commands;
+﻿namespace SweetManagerIotWebService.API.Communication.Domain.Model.Commands;
 
-public record CreateNotificationCommand(int TypesNotificationsId, int? OwnersId, int? AdminsId, int? WorkersId, string Title, string Description);
+public record CreateNotificationCommand(string Title, string Content, string SenderType, int SenderId, int ReceiverId);

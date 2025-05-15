@@ -1,16 +1,9 @@
-using sweetmanager.API.Shared.Domain.Repositories;
-using SweetManagerWebService.Communication.Domain.Model.Aggregates;
+﻿using SweetManagerIotWebService.API.Communication.Domain.Model.Aggregates;
+using SweetManagerIotWebService.API.Shared.Domain.Repositories;
 
-namespace SweetManagerWebService.Communication.Domain.Repositories;
+namespace SweetManagerIotWebService.API.Communication.Domain.Repositories;
 
 public interface INotificationRepository : IBaseRepository<Notification>
 {
-    Task<IEnumerable<Notification>> FindByTypeNotificationIdAsync(int typeNotificationId);
-
-    Task<IEnumerable<Notification>> FindAllByHotelIdAsync(int hotelId);
-
-    Task<IEnumerable<Notification>> FindAllByWorkerIdAsync(int workerId);
-
-    Task<IEnumerable<Notification>> FindAllByHotelIdAndExitsOwnersIdAsync(int hotelId);
     
 }

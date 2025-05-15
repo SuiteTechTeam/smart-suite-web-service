@@ -1,26 +1,28 @@
-﻿using sweetmanager.API.Shared.Domain.Repositories;
-using SweetManagerWebService.IAM.Domain.Model.Commands.Role;
-using SweetManagerWebService.IAM.Domain.Model.Entities.Roles;
-using SweetManagerWebService.IAM.Domain.Model.ValueObjects;
-using SweetManagerWebService.IAM.Domain.Repositories.Roles;
-using SweetManagerWebService.IAM.Domain.Services.Roles;
+﻿using SweetManagerIotWebService.API.IAM.Domain.Model.Commands.Roles;
+using SweetManagerIotWebService.API.IAM.Domain.Model.Entities.Roles;
+using SweetManagerIotWebService.API.IAM.Domain.Model.ValueObjects;
+using SweetManagerIotWebService.API.IAM.Domain.Repositories.Roles;
+using SweetManagerIotWebService.API.IAM.Domain.Services.CommandServices.Roles;
+using SweetManagerIotWebService.API.Shared.Domain.Repositories;
 
-namespace SweetManagerWebService.IAM.Application.Internal.CommandServices.Roles;
-
-public class RoleCommandService(IRoleRepository roleRepository, IUnitOfWork unitOfWork) : IRoleCommandService
+namespace SweetManagerIotWebService.API.IAM.Application.Internal.CommandServices.Roles
 {
-    public async Task<bool> Handle(SeedRolesCommand command)
+    public class RoleCommandService(IRoleRepository roleRepository,
+        IUnitOfWork unitOfWork) : IRoleCommandService
     {
-        foreach (var role in Enum.GetValues(typeof(ERoles)))
+        public async Task<bool> Handle(SeedRolesCommand command)
         {
-            if (await roleRepository.FindByName(role.ToString()!) is null)
+            foreach (var role in Enum.GetValues(typeof(ERoles)))
             {
-                await roleRepository.AddAsync(new Role(role.ToString()!));
+                if (await roleRepository.FindByNameAsync(role.ToString()!) is null)
+                {
+                    await roleRepository.AddAsync(new Role(role.ToString()!));
+                }
             }
+
+            await unitOfWork.CommitAsync();
+
+            return true;
         }
-
-        await unitOfWork.CompleteAsync();
-
-        return true;
     }
 }

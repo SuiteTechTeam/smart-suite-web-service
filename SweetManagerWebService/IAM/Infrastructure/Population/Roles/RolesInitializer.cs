@@ -1,27 +1,26 @@
-﻿using SweetManagerWebService.IAM.Domain.Model.Commands.Role;
-using SweetManagerWebService.IAM.Domain.Model.Queries;
-using SweetManagerWebService.IAM.Domain.Services.Roles;
-using SweetManagerWebService.Shared.Infrastructure.Persistence.EFC.Configuration;
+﻿using SweetManagerIotWebService.API.IAM.Domain.Model.Commands.Roles;
+using SweetManagerIotWebService.API.IAM.Domain.Model.Queries.Roles;
+using SweetManagerIotWebService.API.IAM.Domain.Services.CommandServices.Roles;
+using SweetManagerIotWebService.API.IAM.Domain.Services.QueryServices.Roles;
+using SweetManagerIotWebService.API.Shared.Infrastructure.Persistence.EFC.Configuration;
 
-namespace SweetManagerWebService.IAM.Infrastructure.Population.Roles;
-
-public class RolesInitializer(IRoleCommandService roleCommandService,
-    IRoleQueryService roleQueryService,
-    IWorkerAreaQueryService workerAreaQueryService,
-    SweetManagerContext context)
+namespace SweetManagerIotWebService.API.IAM.Infrastructure.Population.Roles
 {
-    public async Task InitializeAsync()
+    public class RolesInitializer(IRoleCommandService roleCommandService, IRoleQueryService roleQueryService,
+        SweetManagerContext context)
     {
-        // Check if the role table is empty
-
-        var result = await roleQueryService.Handle(new GetAllRolesQuery());
-
-        if (!result.Any())
+        public async Task InitializeAsync()
         {
-            // Prepopulate the empty table
+            // Check if the role table is empty
 
-            await roleCommandService.Handle(new SeedRolesCommand());
+            var result = await roleQueryService.Handle(new GetAllRolesQuery());
+
+            if (!result.Any())
+            {
+                // Prepopulate the empty table
+
+                await roleCommandService.Handle(new SeedRolesCommand());
+            }
         }
     }
-
 }

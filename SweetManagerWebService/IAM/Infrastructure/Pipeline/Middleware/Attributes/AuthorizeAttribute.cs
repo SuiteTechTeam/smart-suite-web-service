@@ -1,33 +1,34 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
+﻿using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc;
 
-namespace SweetManagerWebService.IAM.Infrastructure.Pipeline.Middleware.Attributes;
-
-[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
-public class AuthorizeAttribute(params string[]? roles) : Attribute , IAuthorizationFilter
+namespace SweetManagerIotWebService.API.IAM.Infrastructure.Pipeline.Middleware.Attributes
 {
-    private readonly string[]? _listRoles = roles ?? [];
-    
-    public void OnAuthorization(AuthorizationFilterContext context)
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
+    public class AuthorizeAttribute(params string[]? roles) : Attribute, IAuthorizationFilter
     {
-        var allowAnonymous = context.ActionDescriptor.EndpointMetadata.OfType<AllowAnonymousAttribute>().Any();
+        private readonly string[]? _listRoles = roles ?? [];
 
-        if (allowAnonymous) return;
-
-        var credential = context.HttpContext.Items["Credentials"] as dynamic;
-
-        if (credential is null)
+        public void OnAuthorization(AuthorizationFilterContext context)
         {
-            context.Result = new UnauthorizedResult();
+            var allowAnonymous = context.ActionDescriptor.EndpointMetadata.OfType<AllowAnonymousAttribute>().Any();
 
-            return;
+            if (allowAnonymous) return;
+
+            var credential = context.HttpContext.Items["Credentials"] as dynamic;
+
+            if (credential is null)
+            {
+                context.Result = new UnauthorizedResult();
+
+                return;
+            }
+
+            if (_listRoles != null && (_listRoles.Length <= 0 || HasRequiredRole(credential.Role))) return;
+
+            context.Result = new ForbidResult();
         }
 
-        if (_listRoles != null && (_listRoles.Length <= 0 || HasRequiredRole(credential.Role))) return;
+        private bool HasRequiredRole(string role) => _listRoles != null && _listRoles.Contains(role);
 
-        context.Result = new ForbidResult();
     }
-    
-    private bool HasRequiredRole(string role) => _listRoles != null && _listRoles.Contains(role);
-    
 }

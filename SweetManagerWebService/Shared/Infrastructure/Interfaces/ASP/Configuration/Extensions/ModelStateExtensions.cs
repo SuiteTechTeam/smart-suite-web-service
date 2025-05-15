@@ -1,6 +1,6 @@
-using Microsoft.AspNetCore.Mvc.ModelBinding;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
 
-namespace SweetManagerWebService.Shared.Infrastructure.Interfaces.ASP.Configuration.Extensions
+namespace SweetManagerIotWebService.API.Shared.Infrastructure.Interfaces.ASP.Configuration.Extensions
 {
     public static class ModelStateExtensions
     {
@@ -13,4 +13,3 @@ namespace SweetManagerWebService.Shared.Infrastructure.Interfaces.ASP.Configurat
         }
     }
 }
-

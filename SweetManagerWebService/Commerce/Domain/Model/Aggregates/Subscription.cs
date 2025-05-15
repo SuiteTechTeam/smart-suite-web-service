@@ -1,19 +1,47 @@
-﻿using SweetManagerWebService.Commerce.Domain.Model.Entities.Contracts;
+﻿using System;
+using System.Collections.Generic;
+using SweetManagerIotWebService.API.Commerce.Domain.Model.Commands;
+using SweetManagerIotWebService.API.Commerce.Domain.Model.Entities;
+using SweetManagerIotWebService.API.Commerce.Domain.Model.ValueObjects;
 
-namespace SweetManagerWebService.Commerce.Domain.Model.Aggregates
+namespace SweetManagerIotWebService.API.Commerce.Domain.Model.Aggregates;
+
+public partial class Subscription
 {
-    public partial class Subscription(string name, string description, decimal price, string state)
-    {
-        public int Id { get; }
-        
-        public string Name { get; private set; } = name.ToUpper();
-        
-        public string Description { get; private set; } = description;
-        
-        public decimal Price { get; private set; } = price;
-        
-        public string State { get; private set; } = state.ToUpper();
+    public int Id { get; set; }
 
-        public virtual ICollection<ContractOwner> ContractsOwners { get; } = [];
+    public ESubscriptionTypes Name { get; set; }
+
+    public string? Content { get; set; }
+
+    public decimal? Price { get; set; }
+
+    public EStates Status { get; set; }
+
+    public virtual ICollection<ContractOwner> ContractOwners { get; set; } = new List<ContractOwner>();
+    
+    public Subscription(ESubscriptionTypes name, string? content, decimal? price, EStates status)
+    {
+        Name = name;
+        Content = content;
+        Price = price;
+        Status = status;
+    }
+    
+    public Subscription(CreateSubscriptionCommand command)
+    {
+        Name = command.Name;
+        Content = command.Content;
+        Price = command.Price;
+        Status = command.Status;
+    }
+    
+    public Subscription(UpdateSubscriptionCommand command)
+    {
+        Id = command.Id;
+        Name = command.Name;
+        Content = command.Content;
+        Price = command.Price;
+        Status = command.Status;
     }
 }

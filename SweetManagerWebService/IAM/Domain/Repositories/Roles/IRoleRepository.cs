@@ -1,13 +1,13 @@
-﻿using sweetmanager.API.Shared.Domain.Repositories;
-using SweetManagerWebService.IAM.Domain.Model.Entities.Roles;
+﻿using SweetManagerIotWebService.API.IAM.Domain.Model.Entities.Roles;
+using SweetManagerIotWebService.API.Shared.Domain.Repositories;
 
-namespace SweetManagerWebService.IAM.Domain.Repositories.Roles;
-
-public interface IRoleRepository : IBaseRepository<Role>
+namespace SweetManagerIotWebService.API.IAM.Domain.Repositories.Roles
 {
-    Task<IEnumerable<Role>> FindAllAsync();
+    public interface IRoleRepository : IBaseRepository<Role>
+    {
 
-    Task<Role?> FindByName(string name);
+        Task<Role?> FindByNameAsync(string name);
 
-    Task<int?> FindIdByName(string name);
+        Task<int?> FindIdByNameAsync(string name);
+    }
 }

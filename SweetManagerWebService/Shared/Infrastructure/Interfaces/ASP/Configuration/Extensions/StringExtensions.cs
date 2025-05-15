@@ -1,6 +1,6 @@
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
-namespace SweetManagerWebService.Shared.Infrastructure.Interfaces.ASP.Configuration.Extensions
+namespace SweetManagerIotWebService.API.Shared.Infrastructure.Interfaces.ASP.Configuration.Extensions
 {
     public static partial class StringExtensions
     {
@@ -20,4 +20,3 @@ namespace SweetManagerWebService.Shared.Infrastructure.Interfaces.ASP.Configurat
         private static partial Regex KebabCaseRegex();
     }
 }
-

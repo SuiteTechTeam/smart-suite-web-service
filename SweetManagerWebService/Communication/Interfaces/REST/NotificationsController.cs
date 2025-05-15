@@ -1,113 +1,34 @@
+﻿using System.Net.Mime;
 using Microsoft.AspNetCore.Mvc;
-using System.Net.Mime;
-using SweetManagerWebService.Communication.Domain.Model.Queries.Notificacion;
-using SweetManagerWebService.Communication.Domain.Services.Notification;
-using SweetManagerWebService.Communication.Interfaces.REST.Resources.Notification;
-using SweetManagerWebService.Communication.Interfaces.REST.Transform.Notification;
+using SweetManagerIotWebService.API.Communication.Domain.Model.Queries;
+using SweetManagerIotWebService.API.Communication.Domain.Services;
+using SweetManagerIotWebService.API.Communication.Interfaces.REST.Resources;
+using SweetManagerIotWebService.API.Communication.Interfaces.REST.Transform;
 
-namespace SweetManagerWebService.Communication.Interfaces.REST
+namespace SweetManagerIotWebService.API.Communication.Interfaces.REST;
+
+[ApiController]
+[Route("api/v1/[controller]")]
+[Produces(MediaTypeNames.Application.Json)]
+public class NotificationsController(INotificationCommandService notificationCommandService, INotificationQueryService notificationQueryService):ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    [Produces(MediaTypeNames.Application.Json)]
-    public class NotificationsController(
-        INotificationCommandService notificationCommandService, 
-        INotificationQueryService notificationQueryService) : ControllerBase
+    [HttpPost]
+    public async Task<IActionResult> CreateNotification(CreateNotificationResource resource)
     {
-        [HttpPost]
-        public async Task<IActionResult> CreateNotification([FromBody] CreateNotificationResource resource)
-        {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
+        var createNotificationCommand = CreateNotificationCommandFromResourceAssembler.ToCommandFromResource(resource);
+        var notification = await notificationCommandService.Handle(createNotificationCommand);
+        if (notification is null) return BadRequest();
+        var notificationResource = NotificationResourceFromEntityAssembler.ToResourceFromEntity(notification);
+        return CreatedAtAction(nameof(GetNotificationById), new { notificationId = notificationResource.Id }, notificationResource);
+    }
 
-                var result = await notificationCommandService.Handle(CreateNotificationCommandFromResourceAssembler.ToCommandFromResource(resource));
-
-                return Ok(result);
-            }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
-        }
-        
-        [HttpGet("get-all-notifications")]
-        public async Task<IActionResult> AllNotifications([FromQuery] int hotelId)
-        {
-            var notifications = await notificationQueryService.Handle(new GetAllNotificationsQuery(hotelId));
-
-            var notificationsResource = notifications.Select(NotificationResourceFromEntityAssembler.ToResourceFromEntity);
-
-            return Ok(notificationsResource);
-        }
-
-        [HttpGet("get-notification-by-id")]
-        public async Task<IActionResult> NotificationById([FromQuery] int id)
-        {
-            if (id <= 0)
-            {
-                return BadRequest("Invalid Id");
-            }
-
-            try
-            {
-                var notification = await notificationQueryService.Handle(new GetNotificationByIdQuery(id));
-
-                if (notification is null)
-                {
-                    throw new Exception("Notification not found");
-                }
-
-                var notificationResource = NotificationResourceFromEntityAssembler.ToResourceFromEntity(notification);
-
-                return Ok(notificationResource);
-            }
-            catch (Exception ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-        }
-
-        [HttpGet("get-all-notifications-by-workerId")]
-        public async Task<IActionResult> GetAllNotificationsByWorkerId([FromQuery] int workerId)
-        {
-            try
-            {
-                var notifications =
-                    await notificationQueryService.Handle(new GetAllNotificationsByWorkerIdQuery(workerId));
-
-                var notificationResources =
-                    notifications.Select(NotificationResourceFromEntityAssembler.ToResourceFromEntity);
-
-                return Ok(notificationResources);
-            }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
-        }
-
-        [HttpGet("get-all-notifications-admins")]
-        public async Task<IActionResult> GetAllNotificationsForAdmins([FromQuery] int hotelId)
-        {
-            try
-            {
-                var notifications =
-                    await notificationQueryService.Handle(
-                        new GetAllNotificationsByHotelIdAndExistOwnersIdQuery(hotelId));
-
-                var notificationResources =
-                    notifications.Select(NotificationResourceFromEntityAssembler.ToResourceFromEntity);
-
-                return Ok(notificationResources);
-            }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
-        }
+    [HttpGet("{notificationId:int}")]
+    public async Task<IActionResult> GetNotificationById(int notificationId)
+    {
+        var getNotificationByIdQuery = new GetNotificationByIdQuery(notificationId);
+        var notification = await notificationQueryService.Handle(getNotificationByIdQuery);
+        if (notification == null) return NotFound();
+        var notificationResource = NotificationResourceFromEntityAssembler.ToResourceFromEntity(notification);
+        return Ok(notificationResource);
     }
 }

@@ -1,6 +1,0 @@
-@SweetManagerWebService_HostAddress = http://localhost:5181
-
-GET {{SweetManagerWebService_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

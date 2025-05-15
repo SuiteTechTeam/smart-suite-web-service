@@ -1,6 +1,6 @@
-using Humanizer;
+﻿using Humanizer;
 
-namespace SweetManagerWebService.Shared.Infrastructure.Persistence.EFC.Configuration.Extensions
+namespace SweetManagerIotWebService.API.Shared.Infrastructure.Persistence.EFC.Configuration.Extensions
 {
     public static class StringExtensions
     {
@@ -29,8 +29,7 @@ namespace SweetManagerWebService.Shared.Infrastructure.Persistence.EFC.Configura
 
         public static string ToPlural(this string text)
         {
-            return text.Pluralize(inputIsKnownToBeSingular:false);
+            return text.Pluralize(inputIsKnownToBeSingular: false);
         }
     }
 }
-

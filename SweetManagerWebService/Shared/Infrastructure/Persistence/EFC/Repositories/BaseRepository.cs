@@ -1,11 +1,10 @@
-using Microsoft.EntityFrameworkCore;
-using sweetmanager.API.Shared.Domain.Repositories;
-using SweetManagerWebService.Shared.Infrastructure.Persistence.EFC.Configuration;
+﻿using Microsoft.EntityFrameworkCore;
+using SweetManagerIotWebService.API.Shared.Domain.Repositories;
+using SweetManagerIotWebService.API.Shared.Infrastructure.Persistence.EFC.Configuration;
 
-namespace SweetManagerWebService.Shared.Infrastructure.Persistence.EFC.Repositories
+namespace SweetManagerIotWebService.API.Shared.Infrastructure.Persistence.EFC.Repositories
 {
-    public abstract class BaseRepository<TEntity>(SweetManagerContext context) : IBaseRepository<TEntity>
-        where TEntity : class
+    public abstract class BaseRepository<TEntity>(SweetManagerContext context) : IBaseRepository<TEntity> where TEntity : class
     {
         protected readonly SweetManagerContext Context = context;
 
@@ -13,11 +12,10 @@ namespace SweetManagerWebService.Shared.Infrastructure.Persistence.EFC.Repositor
 
         public async Task<TEntity?> FindByIdAsync(int id) => await Context.Set<TEntity>().FindAsync(id);
 
-        public void Update(TEntity entity) => Context.Set<TEntity>().Update(entity);
+        public async Task<IEnumerable<TEntity>> ListAsync() => await Context.Set<TEntity>().ToListAsync();
 
         public void Remove(TEntity entity) => Context.Set<TEntity>().Remove(entity);
 
-        public async Task<IEnumerable<TEntity>> ListAsync() => await Context.Set<TEntity>().ToListAsync();
+        public void Update(TEntity entity) => Context.Set<TEntity>().Update(entity);
     }
 }
-

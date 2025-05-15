@@ -1,36 +1,66 @@
-﻿using SweetManagerWebService.Communication.Domain.Model.Aggregates;
-using SweetManagerWebService.IAM.Domain.Model.Entities.Assignments;
-using SweetManagerWebService.IAM.Domain.Model.Entities.Credentials;
-using SweetManagerWebService.IAM.Domain.Model.Entities.Roles;
-using SweetManagerWebService.ResourceManagement.Domain.Model.Aggregates;
+﻿using SweetManagerIotWebService.API.IAM.Domain.Model.Commands.Authentication;
+using SweetManagerIotWebService.API.IAM.Domain.Model.Entities.Credentials;
+using SweetManagerIotWebService.API.IAM.Domain.Model.Entities.Roles;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
-namespace SweetManagerWebService.IAM.Domain.Model.Aggregates
+namespace SweetManagerIotWebService.API.IAM.Domain.Model.Aggregates;
+
+public partial class Admin
 {
-    public partial class Admin(int id, string username, string email, int rolesId, 
-        string name, string surname, int phone, string state)
+    public int Id { get; private set; }
+
+    public string? Name { get; private set; }
+
+    public string? Surname { get; private set; }
+
+    public string? Phone { get; private set; }
+
+    public string? Email { get; private set; }
+
+    public string? State { get; private set; }
+
+    public int? RoleId { get; private set; }
+
+    public int? HotelId { get; private set; }
+
+    public virtual AdminCredential? AdminCredential { get; set; }
+
+    public virtual Role? Role { get; set; }
+
+    public virtual Hotel? Hotel { get; set; }
+
+    public Admin() { }
+
+    public Admin(int id, string name, string surname, string phone, string email, string state, int roleId)
     {
-        public int Id { get; private set; } = id;
+        Id = id;
+        Name = name;
+        Surname = surname;
+        Phone = phone;
+        Email = email;
+        State = state;
+        RoleId = roleId;
+    }
 
-        public int RolesId { get; private set; } = rolesId;
-        
-        public string Username { get; private set; } = username;
-        
-        public string Name { get; private set; } = name.ToUpper();
-        
-        public string Surname { get; private set; } = surname.ToUpper();
+    public Admin(UpdateUserCommand command)
+    {
+        Id = command.Id;
+        Name = command.Name;
+        Surname = command.Surname;
+        Phone = command.Phone;
+        Email = command.Email;
+        State = command.State;
+    }
 
-        public string Email { get; private set; } = email;
+    public Admin Update(UpdateUserCommand command)
+    {
+        Id = command.Id;
+        Name = command.Name;
+        Surname = command.Surname;
+        Phone = command.Phone;
+        Email = command.Email;
+        State = command.State;
 
-        public int Phone { get; private set; } = phone;
-        
-        public string State { get; private set; } = state.ToUpper();
-
-        public virtual AdminCredential? AdminCredential { get; }
-        
-        public virtual Role Role { get; } = null!;
-
-        public virtual ICollection<AssignmentWorker> AssignmentsWorkers { get; } = [];
-        public virtual ICollection<Notification> Notifications { get; } = [];
-        public virtual ICollection<Report> Reports { get; } = [];
+        return this;
     }
 }

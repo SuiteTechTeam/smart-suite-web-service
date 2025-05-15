@@ -1,18 +1,25 @@
-﻿using SweetManagerWebService.IAM.Domain.Model.Aggregates;
+﻿using System;
+using System.Collections.Generic;
+using SweetManagerIotWebService.API.IAM.Domain.Model.Aggregates;
 
-namespace SweetManagerWebService.IAM.Domain.Model.Entities.Roles
+namespace SweetManagerIotWebService.API.IAM.Domain.Model.Entities.Roles;
+
+public partial class Role
 {
-    public partial class Role(string name)
-    {
-        public int Id { get; }
-        
-        public string Name { get; private set; } = name;
-        
-        
-        public virtual ICollection<Owner> Owners { get; } = null!;
+    public int Id { get; set; }
 
-        public virtual ICollection<Admin> Admins { get; } = [];
-        
-        public virtual ICollection<Worker> Workers { get; } = [];
+    public string? Name { get; set; }
+
+    public virtual ICollection<Admin> Admins { get; set; } = new List<Admin>();
+
+    public virtual ICollection<Owner> Owners { get; set; } = new List<Owner>();
+
+    public virtual ICollection<Guest> Guests { get; set; } = new List<Guest>();
+
+    public Role() { }
+
+    public Role(string name)
+    {
+        Name = name;
     }
 }

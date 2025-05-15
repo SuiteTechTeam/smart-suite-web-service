@@ -1,6 +1,7 @@
-namespace sweetmanager.API.Shared.Domain.Repositories;
-
-public interface IUnitOfWork
+﻿namespace SweetManagerIotWebService.API.Shared.Domain.Repositories
 {
-    Task CompleteAsync();
+    public interface IUnitOfWork
+    {
+        Task CommitAsync();
+    }
 }

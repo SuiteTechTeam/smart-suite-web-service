@@ -1,22 +1,14 @@
-﻿using sweetmanager.API.Shared.Domain.Repositories;
-using SweetManagerWebService.IAM.Domain.Model.Aggregates;
+﻿using SweetManagerIotWebService.API.IAM.Domain.Model.Aggregates;
+using SweetManagerIotWebService.API.Shared.Domain.Repositories;
 
-namespace SweetManagerWebService.IAM.Domain.Repositories.Users;
-
-public interface IOwnerRepository : IBaseRepository<Owner>
+namespace SweetManagerIotWebService.API.IAM.Domain.Repositories.Users
 {
-    Task<Owner?> FindByHotelId(int hotelId);
+    public interface IOwnerRepository : IBaseRepository<Owner>
+    {
+        Task<dynamic?> FindAllByFiltersAsync(string? email, string? phone, string? state);
 
-    Task<Owner?> FindById(int id);
+        Task<Owner?> FindByHotelIdAsync(int hotelId);
 
-    Task<Owner?> FindByEmail(string email);
-
-    Task<int?> FindIdByEmail(string email);
-    
-    Task<bool> ExecuteUpdateOwnerEmailAsync(string email, int id);
-
-    Task<bool> ExecuteUpdateOwnerPhoneAsync(int phone, int id);
-
-    Task<int?> FindHotelIdByOwnerId(int id);
-    
+        Task<int?> FindHotelIdByIdAsync(int id);
+    }
 }

@@ -1,11 +1,10 @@
-using sweetmanager.API.Shared.Domain.Repositories;
-using SweetManagerWebService.Shared.Infrastructure.Persistence.EFC.Configuration;
+﻿using SweetManagerIotWebService.API.Shared.Domain.Repositories;
+using SweetManagerIotWebService.API.Shared.Infrastructure.Persistence.EFC.Configuration;
 
-namespace SweetManagerWebService.Shared.Infrastructure.Persistence.EFC.Repositories
+namespace SweetManagerIotWebService.API.Shared.Infrastructure.Persistence.EFC.Repositories
 {
     public class UnitOfWork(SweetManagerContext context) : IUnitOfWork
     {
-        public async Task CompleteAsync() => await context.SaveChangesAsync();
+        public async Task CommitAsync() => await context.SaveChangesAsync();
     }
 }
-

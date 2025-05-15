@@ -1,24 +1,19 @@
-﻿using SweetManagerWebService.IAM.Domain.Model.Entities.Roles;
-using SweetManagerWebService.IAM.Domain.Model.Queries;
-using SweetManagerWebService.IAM.Domain.Repositories.Roles;
-using SweetManagerWebService.IAM.Domain.Services.Roles;
+﻿using SweetManagerIotWebService.API.IAM.Domain.Model.Entities.Roles;
+using SweetManagerIotWebService.API.IAM.Domain.Model.Queries.Roles;
+using SweetManagerIotWebService.API.IAM.Domain.Repositories.Roles;
+using SweetManagerIotWebService.API.IAM.Domain.Services.QueryServices.Roles;
 
-namespace SweetManagerWebService.IAM.Application.Internal.QueryServices.Roles;
-
-public class RoleQueryService(IRoleRepository roleRepository) : IRoleQueryService
+namespace SweetManagerIotWebService.API.IAM.Application.Internal.QueryServices.Roles
 {
-    public async Task<IEnumerable<Role>> Handle(GetAllRolesQuery query)
+    public class RoleQueryService(IRoleRepository roleRepository) : IRoleQueryService
     {
-        return await roleRepository.FindAllAsync();
-    }
+        public async Task<IEnumerable<Role>> Handle(GetAllRolesQuery query)
+         => await roleRepository.ListAsync();
 
-    public async Task<Role?> Handle(GetRoleByNameQuery query)
-    {
-        return await roleRepository.FindByName(query.Name);
-    }
+        public async Task<Role?> Handle(GetRoleByNameQuery query)
+         => await roleRepository.FindByNameAsync(query.Name);
 
-    public async Task<int?> Handle(GetRoleIdByNameQuery query)
-    {
-        return await roleRepository.FindIdByName(query.Name);
+        public async Task<int?> Handle(GetRoleIdByNameQuery query)
+         => await roleRepository.FindIdByNameAsync(query.Name);
     }
 }

@@ -1,30 +1,21 @@
-﻿using SweetManagerWebService.IAM.Domain.Model.Entities.Roles;
-using SweetManagerWebService.IAM.Domain.Repositories.Roles;
-using SweetManagerWebService.Shared.Infrastructure.Persistence.EFC.Configuration;
-using SweetManagerWebService.Shared.Infrastructure.Persistence.EFC.Repositories;
+﻿using Microsoft.EntityFrameworkCore;
+using SweetManagerIotWebService.API.IAM.Domain.Model.Entities.Roles;
+using SweetManagerIotWebService.API.IAM.Domain.Repositories.Roles;
+using SweetManagerIotWebService.API.Shared.Infrastructure.Persistence.EFC.Configuration;
+using SweetManagerIotWebService.API.Shared.Infrastructure.Persistence.EFC.Repositories;
 
-namespace SweetManagerWebService.IAM.Infrastructure.Persistence.EFC.Repositories.Roles;
-
-public class RoleRepository(SweetManagerContext context) : BaseRepository<Role>(context) , IRoleRepository
+namespace SweetManagerIotWebService.API.IAM.Infrastructure.Persistence.EFC.Repositories.Roles
 {
-    public async Task<IEnumerable<Role>> FindAllAsync()
-        => await Task.Run(() => (
-            from rl in Context.Set<Role>().ToList()
-            select rl
-        ).ToList());
+    public class RoleRepository(SweetManagerContext context) : BaseRepository<Role>(context), IRoleRepository
+    {
+        public async Task<Role?> FindByNameAsync(string name)
+        => await Context.Set<Role>().Where(r => r.Name.Equals(name)).FirstOrDefaultAsync();
 
-    public async Task<Role?> FindByName(string name)
-        => await Task.Run(() => (
-            from rl in Context.Set<Role>().ToList()
-            where rl.Name.Equals(name)
-            select rl
-        ).FirstOrDefault());
-    
-    public async Task<int?> FindIdByName(string name)
-        => await Task.Run(() => (
-            from rl in Context.Set<Role>().ToList()
-            where rl.Name.Equals(name)
-            select rl.Id
-        ).FirstOrDefault());
+        public async Task<int?> FindIdByNameAsync(string name)
+        {
+            var result = await Context.Set<Role>().Where(r => r.Name.Equals(name)).FirstOrDefaultAsync();
 
+            return result?.Id;
+        }
+    }
 }

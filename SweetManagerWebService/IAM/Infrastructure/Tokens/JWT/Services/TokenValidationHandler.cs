@@ -1,92 +1,92 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+﻿using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using SweetManagerIotWebService.API.IAM.Infrastructure.Tokens.JWT.Configuration;
+using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Text;
-using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
-using SweetManagerWebService.IAM.Infrastructure.Tokens.JWT.Configuration;
 
-namespace SweetManagerWebService.IAM.Infrastructure.Tokens.JWT.Services;
-
-internal class TokenValidationHandler(IOptions<TokenSettings> tokenSettings) : DelegatingHandler
+namespace SweetManagerIotWebService.API.IAM.Infrastructure.Tokens.JWT.Services
 {
-    private readonly TokenSettings _tokenSettings = tokenSettings.Value;
-
-    private static bool TryRetrieveToken(HttpRequestMessage request, out string token)
+    internal class TokenValidationHandler(IOptions<TokenSettings> tokenSettings) : DelegatingHandler
     {
-        token = string.Empty;
+        private readonly TokenSettings _tokenSettings = tokenSettings.Value;
 
-        IEnumerable<string>? authHeaders;
-
-        if (!request.Headers.TryGetValues("Authorization", out authHeaders) || authHeaders.Count() > 1)
-            return false;
-
-        var bearerToken = authHeaders.ElementAt(0);
-
-        token = bearerToken.StartsWith("Bearer ") ? bearerToken[7..] : bearerToken;
-
-        return true;
-    }
-
-    protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
-        CancellationToken cancellationToken)
-    {
-        HttpStatusCode statusCode;
-
-        string token;
-
-        if (!TryRetrieveToken(request, out token))
+        private static bool TryRetrieveToken(HttpRequestMessage request, out string token)
         {
-            statusCode = HttpStatusCode.Unauthorized;
+            token = string.Empty;
 
-            return base.SendAsync(request, cancellationToken);
+            IEnumerable<string>? authHeaders;
+
+            if (!request.Headers.TryGetValues("Authorization", out authHeaders) || authHeaders.Count() > 1)
+                return false;
+
+            var bearerToken = authHeaders.ElementAt(0);
+
+            token = bearerToken.StartsWith("Bearer ") ? bearerToken[7..] : bearerToken;
+
+            return true;
         }
 
-        try
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
+            CancellationToken cancellationToken)
         {
-            var securityKey = new SymmetricSecurityKey(Encoding.Default.GetBytes(_tokenSettings.SecretKey));
+            HttpStatusCode statusCode;
 
-            SecurityToken securityToken;
+            string token;
 
-            JwtSecurityTokenHandler tokenHandler = new();
-
-            TokenValidationParameters validationParameters = new()
+            if (!TryRetrieveToken(request, out token))
             {
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidateLifetime = true,
-                ValidateIssuerSigningKey = true,
-                ValidIssuer = _tokenSettings.Issuer,
-                ValidAudience = _tokenSettings.Audience,
-                IssuerSigningKey = securityKey,
-                LifetimeValidator = LifetimeValidator,
-                ClockSkew = TimeSpan.Zero
-            };
-            Thread.CurrentPrincipal = tokenHandler.ValidateToken(token, validationParameters, out securityToken);
+                statusCode = HttpStatusCode.Unauthorized;
 
-            if (securityToken is JwtSecurityToken jwt)
-                if (!jwt.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
-                    statusCode = HttpStatusCode.Unauthorized;
+                return base.SendAsync(request, cancellationToken);
+            }
 
-            return base.SendAsync(request, cancellationToken);
+            try
+            {
+                var securityKey = new SymmetricSecurityKey(Encoding.Default.GetBytes(_tokenSettings.SecretKey));
+
+                SecurityToken securityToken;
+
+                JwtSecurityTokenHandler tokenHandler = new();
+
+                TokenValidationParameters validationParameters = new()
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = _tokenSettings.Issuer,
+                    ValidAudience = _tokenSettings.Audience,
+                    IssuerSigningKey = securityKey,
+                    LifetimeValidator = LifetimeValidator,
+                    ClockSkew = TimeSpan.Zero
+                };
+                Thread.CurrentPrincipal = tokenHandler.ValidateToken(token, validationParameters, out securityToken);
+
+                if (securityToken is JwtSecurityToken jwt)
+                    if (!jwt.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+                        statusCode = HttpStatusCode.Unauthorized;
+
+                return base.SendAsync(request, cancellationToken);
+            }
+            catch (SecurityTokenValidationException)
+            {
+                statusCode = HttpStatusCode.Unauthorized;
+            }
+            catch (Exception)
+            {
+                statusCode = HttpStatusCode.InternalServerError;
+            }
+
+            return Task<HttpResponseMessage>.Factory.StartNew(() => new HttpResponseMessage(statusCode), cancellationToken);
         }
-        catch (SecurityTokenValidationException)
+
+        private static bool LifetimeValidator(DateTime? notBefore, DateTime? expires, SecurityToken securityToken,
+            TokenValidationParameters validationParameters)
         {
-            statusCode = HttpStatusCode.Unauthorized;
+            if (expires is null) return false;
+
+            return DateTime.UtcNow < expires;
         }
-        catch (Exception)
-        {
-            statusCode = HttpStatusCode.InternalServerError;
-        }
-
-        return Task<HttpResponseMessage>.Factory.StartNew(() => new HttpResponseMessage(statusCode), cancellationToken);
     }
-
-    private static bool LifetimeValidator(DateTime? notBefore, DateTime? expires, SecurityToken securityToken,
-        TokenValidationParameters validationParameters)
-    {
-        if (expires == null) return false;
-
-        return DateTime.UtcNow < expires;
-    }
-    
 }

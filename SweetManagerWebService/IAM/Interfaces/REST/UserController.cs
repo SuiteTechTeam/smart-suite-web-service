@@ -1,184 +1,251 @@
-﻿using System.Net.Mime;
-using Microsoft.AspNetCore.Mvc;
-using SweetManagerWebService.IAM.Application.Internal.OutboundServices.ACL;
-using SweetManagerWebService.IAM.Domain.Model.Queries;
-using SweetManagerWebService.IAM.Domain.Services.Users.Admin;
-using SweetManagerWebService.IAM.Domain.Services.Users.Owner;
-using SweetManagerWebService.IAM.Domain.Services.Users.Worker;
-using SweetManagerWebService.IAM.Infrastructure.Pipeline.Middleware.Attributes;
-using SweetManagerWebService.IAM.Interfaces.REST.Resource.Authentication.User;
-using SweetManagerWebService.IAM.Interfaces.REST.Transform.Authentication.User;
+﻿using Microsoft.AspNetCore.Mvc;
+using SweetManagerIotWebService.API.IAM.Domain.Model.Aggregates;
+using SweetManagerIotWebService.API.IAM.Domain.Model.Queries.Users;
+using SweetManagerIotWebService.API.IAM.Domain.Services.CommandServices.Users;
+using SweetManagerIotWebService.API.IAM.Domain.Services.QueryServices.Users;
+using SweetManagerIotWebService.API.IAM.Infrastructure.Pipeline.Middleware.Attributes;
+using SweetManagerIotWebService.API.IAM.Interfaces.REST.Resources.Users;
+using SweetManagerIotWebService.API.IAM.Interfaces.REST.Transform.Users;
+using System.Net.Mime;
 
-namespace SweetManagerWebService.IAM.Interfaces.REST;
-
-[ApiController]
-[Route("api/v1/[controller]")]
-[Produces(MediaTypeNames.Application.Json)]
-public class UserController(IWorkerCommandService workerCommandService,
-    IAdminCommandService adminCommandService, 
+namespace SweetManagerIotWebService.API.IAM.Interfaces.REST
+{
+    [ApiController]
+    [Route("api/v1/[controller]")]
+    [Produces(MediaTypeNames.Application.Json)]
+    public class UserController(IGuestCommandService guestCommandService,
+    IAdminCommandService adminCommandService,
     IOwnerCommandService ownerCommandService,
     IAdminQueryService adminQueryService,
-    IWorkerQueryService workerQueryService,
-    IOwnerQueryService ownerQueryService,
-    ExternalMonitoringService externalMonitoringService,
-    ExternalProfilesService externalProfilesService) : ControllerBase
-{
-    
-    [HttpGet("get-owner-id")]
-    public async Task<IActionResult> GetOwnerById([FromQuery] int id)
+    IGuestQueryService guestQueryService,
+    IOwnerQueryService ownerQueryService) : ControllerBase
     {
-        try
+        [Authorize]
+        [HttpGet("owners/{id}")]
+        public async Task<IActionResult> GetOwnerById(int id)
         {
-            var owner = await ownerQueryService.Handle(new GetUserByIdQuery(id));
+            try
+            {
+                var owner = await ownerQueryService.Handle(new GetUserByIdQuery(id));
 
-            var ownerResource = UserResourceFromEntityAssembler.ToResourceFromEntity(owner!);
+                var ownerResource = UserResourceFromEntityAssembler.ToResourceFromEntity(owner!);
 
-            return Ok(ownerResource);
+                return Ok(ownerResource);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
         }
-        catch (Exception e)
+
+        [Authorize]
+        [HttpGet("owners")]
+        public async Task<IActionResult> GetAllOwners([FromQuery]int hotelId = 0, [FromQuery] string email = "", [FromQuery] string phone = "", [FromQuery] string state = "")
         {
-            return BadRequest(e.Message);
+            try
+            {
+                if (hotelId != 0)
+                {
+                    var owner = await ownerQueryService.Handle(new GetOwnerFromAnOrganizationQuery(hotelId));
+
+                    var ownerResource = UserResourceFromEntityAssembler.ToResourceFromEntity(owner!);
+
+                    return Ok(ownerResource);
+                } 
+                else
+                {
+                    var owners = await ownerQueryService.Handle(new GetAllFilteredUsersQuery(email, phone, state));
+
+                    dynamic ownerResources;
+
+                    if (email != string.Empty)
+                        ownerResources = UserResourceFromEntityAssembler.ToResourceFromEntity(owners!);
+                    else
+                    {
+                        IEnumerable<Owner> ownerList;
+                        ownerList = owners;
+                        ownerResources = ownerList.Select(UserResourceFromEntityAssembler.ToResourceFromEntity);
+                    }
+
+                    return Ok(ownerResources);
+                }
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
-    }
-    
 
-    [HttpGet("get-all-admins")]
-    public async Task<IActionResult> GetAdmins([FromQuery]int hotelId)
-    {
-        try
+        [Authorize]
+        [HttpGet("admins/{id}")]
+        public async Task<IActionResult> GetAdminById(int id)
         {
-            var admins = await adminQueryService.Handle(new GetAllUsersQuery(hotelId));
+            try
+            {
+                var admin = await adminQueryService.Handle(new GetUserByIdQuery(id));
 
-            var adminResources = admins.Select(UserResourceFromEntityAssembler.ToResourceFromEntity);
-            
-            return Ok(adminResources);
+                var adminResource = UserResourceFromEntityAssembler.ToResourceFromEntity(admin!);
+
+                return Ok(adminResource);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
         }
-        catch (Exception ex)
+
+        [Authorize]
+        [HttpGet("admins")]
+        public async Task<IActionResult> GetAllAdmins([FromQuery] int hotelId = 0, [FromQuery] string email = "", [FromQuery] string phone = "", [FromQuery] string state = "")
         {
-            return BadRequest(ex.Message);
+            try
+            {
+                if (hotelId != 0)
+                {
+                    var admin = await adminQueryService.Handle(new GetAllUsersFromOrganizationQuery(hotelId));
+
+                    var adminResource = UserResourceFromEntityAssembler.ToResourceFromEntity(admin!);
+
+                    return Ok(adminResource);
+                }
+                else
+                {
+                    var admins = await adminQueryService.Handle(new GetAllFilteredUsersQuery(email, phone, state));
+
+                    dynamic adminResources;
+
+                    if (email != string.Empty)
+                        adminResources = UserResourceFromEntityAssembler.ToResourceFromEntity(admins!);
+                    else
+                    {
+                        IEnumerable<Admin> adminList;
+                        adminList = admins;
+                        adminResources = adminList.Select(UserResourceFromEntityAssembler.ToResourceFromEntity);
+                    }
+
+                    return Ok(adminResources);
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
-    }
 
-    [HttpGet("get-all-workers")]
-    public async Task<IActionResult> getAllWorkers([FromQuery]int hotelId)
-    {
-        try
+        [Authorize]
+        [HttpGet("guests/{id}")]
+        public async Task<IActionResult> GetGuestById(int id)
         {
-            var workers = await workerQueryService.Handle(new GetAllUsersQuery(hotelId));
+            try
+            {
+                var guest = await guestQueryService.Handle(new GetUserByIdQuery(id));
 
-            var workerResources = workers.Select(UserResourceFromEntityAssembler.ToResourceFromEntity);
-            
-            return Ok(workerResources);
+                var guestResource = UserResourceFromEntityAssembler.ToResourceFromEntity(guest!);
+
+                return Ok(guestResource);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
         }
-        catch (Exception e)
+
+        [Authorize]
+        [HttpGet("guests")]
+        public async Task<IActionResult> GetAllGuests([FromQuery] int hotelId = 0, [FromQuery] string email = "", [FromQuery] string phone = "", [FromQuery] string state = "")
         {
-            return BadRequest(e.Message);
+            try
+            {
+                if (hotelId != 0)
+                {
+                    var guest = await guestQueryService.Handle(new GetAllUsersFromOrganizationQuery(hotelId));
+
+                    var guestResource = UserResourceFromEntityAssembler.ToResourceFromEntity(guest!);
+
+                    return Ok(guestResource);
+                }
+                else
+                {
+                    var guests = await guestQueryService.Handle(new GetAllFilteredUsersQuery(email, phone, state));
+
+                    dynamic guestResources;
+
+                    if (email != string.Empty)
+                        guestResources = UserResourceFromEntityAssembler.ToResourceFromEntity(guests!);
+                    else
+                    {
+                        IEnumerable<Guest> guestList;
+                        guestList = guests;
+                        guestResources = guestList.Select(UserResourceFromEntityAssembler.ToResourceFromEntity);
+                    }
+
+                    return Ok(guestResources);
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
-    }
-    
-    [HttpGet("get-admin-count")]
-    [Authorize]
-    public async Task<IActionResult> GetAdminCount([FromQuery]int hotelId)
-    {
-        try
+
+        [HttpPut("admins/{id}")]
+        [Authorize]
+        public async Task<IActionResult> UpdateAdmin([FromBody] UpdateUserResource resource, int id)
         {
-            var admins = await adminQueryService.Handle(new GetAllUsersQuery(hotelId));
+            try
+            {
+                var updateUserCommand = UpdateUserCommandFromResourceAssembler.ToCommandFromResource(resource, id);
 
-            var result = admins.Count();
+                var result = await adminCommandService.Handle(updateUserCommand);
 
-            return Ok(new { count = result});
+                var adminResource = UserResourceFromEntityAssembler.ToResourceFromEntity(result!);
+
+                return Ok(adminResource);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
-        catch (Exception ex)
+
+        [HttpPut("owners/{id}")]
+        [Authorize]
+        public async Task<IActionResult> UpdateOwner([FromBody] UpdateUserResource resource, int id)
         {
-            return BadRequest(ex.Message);
+            try
+            {
+                var updateUserCommand = UpdateUserCommandFromResourceAssembler.ToCommandFromResource(resource, id);
+
+                var result = await ownerCommandService.Handle(updateUserCommand);
+
+                var ownerResource = UserResourceFromEntityAssembler.ToResourceFromEntity(result!);
+
+                return Ok(ownerResource);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
-    }
 
-    [HttpGet("get-worker-count")]
-    [Authorize]
-    public async Task<IActionResult> GetWorkerCount([FromQuery] int hotelId)
-    {
-        try
+        [HttpPut("guests/{id}")]
+        [Authorize]
+        public async Task<IActionResult> UpdateGuest([FromBody] UpdateUserResource resource, int id)
         {
-            var workers = await workerQueryService.Handle(new GetAllUsersQuery(hotelId));
+            try
+            {
+                var updateUserCommand = UpdateUserCommandFromResourceAssembler.ToCommandFromResource(resource, id);
 
-            var result = workers.Count();
+                var result = await guestCommandService.Handle(updateUserCommand);
 
-            return Ok(new { count = result });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
-    }
+                var guestResource = UserResourceFromEntityAssembler.ToResourceFromEntity(result!);
 
-    [HttpGet("get-room-count")]
-    [Authorize]
-    public async Task<IActionResult> GetRoomsCount([FromQuery] int hotelId)
-    {
-        try
-        {
-            var rooms = await externalMonitoringService.FetchRoomCount(hotelId);
-
-            return Ok(new { count = rooms });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
-    }
-    
-    [HttpPut("update-admin")]
-    [Authorize]
-    public async Task<IActionResult> UpdateAdmin([FromBody]UpdateUserResource resource)
-    {
-        try
-        {
-            var updateUserCommand = UpdateUserCommandFromResourceAssembler.ToCommandFromResource(resource);
-
-            await adminCommandService.Handle(updateUserCommand);
-            
-            return Ok("User updated correctly!");
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
-    }
-
-    [HttpPut("update-owner")]
-    [Authorize]
-    public async Task<IActionResult> UpdateOwner([FromBody] UpdateUserResource resource)
-    {
-        try
-        {
-            var updateUserCommand = UpdateUserCommandFromResourceAssembler.ToCommandFromResource(resource);
-
-            await ownerCommandService.Handle(updateUserCommand);
-
-            return Ok("User updated correctly!");
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
-    }
-
-    [HttpPut("update-worker")]
-    [Authorize]
-    public async Task<IActionResult> UpdateWorker([FromBody] UpdateUserResource resource)
-    {
-        try
-        {
-            var updateUserCommand = UpdateUserCommandFromResourceAssembler.ToCommandFromResource(resource);
-
-            await workerCommandService.Handle(updateUserCommand);
-
-            return Ok("User updated correctly!");
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
+                return Ok(guestResource);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }

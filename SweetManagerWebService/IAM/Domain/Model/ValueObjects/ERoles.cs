@@ -1,8 +1,9 @@
-﻿namespace SweetManagerWebService.IAM.Domain.Model.ValueObjects;
-
-public enum ERoles
+﻿namespace SweetManagerIotWebService.API.IAM.Domain.Model.ValueObjects
 {
-    ROLE_OWNER,
-    ROLE_ADMIN,
-    ROLE_WORKER
+    public enum ERoles
+    {
+        ROLE_OWNER,
+        ROLE_ADMIN,
+        ROLE_GUEST
+    }
 }

@@ -1,11 +1,12 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using EntityFrameworkCore.CreatedUpdatedDate.Contracts;
+﻿using EntityFrameworkCore.CreatedUpdatedDate.Contracts;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace SweetManagerWebService.IAM.Domain.Model.Entities.Credentials;
-
-public partial class OwnerCredential : IEntityWithCreatedUpdatedDate
+namespace SweetManagerIotWebService.API.IAM.Domain.Model.Entities.Credentials
 {
-    [Column("created_at")] public DateTimeOffset? CreatedDate { get; set; }
-    
-    [Column("updated_at")] public DateTimeOffset? UpdatedDate { get; set; }
+    public partial class OwnerCredential : IEntityWithCreatedUpdatedDate
+    {
+        [Column("created_at")] public DateTimeOffset? CreatedDate { get; set; }
+
+        [Column("updated_at")] public DateTimeOffset? UpdatedDate { get; set; }
+    }
 }
