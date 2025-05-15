@@ -442,18 +442,26 @@ using (var scope = app.Services.CreateScope())
 }
 #endregion
 
-// Configuration cors
-app.UseCors(
-    b => b.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin() 
-);
-
+// Configure CORS
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(
+        policy =>
+        {
+            policy.AllowAnyOrigin()
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        });
+});
 
 app.UseSwagger();
 
 app.UseSwaggerUI();
 
-
 app.UseRouting();
+
+// Apply CORS middleware early in the pipeline
+app.UseCors();
 
 app.UseRequestAuthorization();
 
