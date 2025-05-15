@@ -1,15 +1,16 @@
 ﻿FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 
 # Set environment variables and work directory
+
 WORKDIR /app
+
 EXPOSE 5000
 
 ENV ASPNETCORE_URLS=http://+:5000
-ARG ASPNETCORE_ENVIRONMENT=Production
+ARG ASPNETCORE_ENVIRONMENT
 ENV ASPNETCORE_ENVIRONMENT=$ASPNETCORE_ENVIRONMENT
 
 # Check if the user with the specified ID already exists, and if not, create a new user
-
 RUN if ! id -u $APP_UID > /dev/null 2>&1; then adduser --disabled-password --gecos '' --uid $APP_UID appuser; fi
 USER $APP_UID
 
@@ -33,8 +34,8 @@ RUN dotnet publish "SweetManagerWebService.csproj" -c $BUILD_CONFIGURATION -o /a
 
 FROM base AS final
 WORKDIR /app
-
 # Copy the published output from the build stage
+
 COPY --from=publish /app/publish .
 
 # Change ownership and permissions of the app directory
