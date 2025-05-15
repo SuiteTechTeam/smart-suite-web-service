@@ -5,7 +5,7 @@ WORKDIR /app
 EXPOSE 5000
 
 ENV ASPNETCORE_URLS=http://+:5000
-ARG ASPNETCORE_ENVIRONMENT
+ARG ASPNETCORE_ENVIRONMENT=Production
 ENV ASPNETCORE_ENVIRONMENT=$ASPNETCORE_ENVIRONMENT
 
 # Check if the user with the specified ID already exists, and if not, create a new user
