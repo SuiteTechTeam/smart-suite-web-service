@@ -3,8 +3,6 @@
 # Set environment variables and work directory
 WORKDIR /app
 EXPOSE 5000
-EXPOSE 80
-EXPOSE 443
 
 ENV ASPNETCORE_URLS=http://+:5000
 ARG ASPNETCORE_ENVIRONMENT=Production
