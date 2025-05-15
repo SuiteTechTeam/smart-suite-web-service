@@ -123,14 +123,14 @@ builder.Services.AddSwaggerGen(
         c.SwaggerDoc("v1",
             new OpenApiInfo
             {
-                Title = "Sweet Manager API",
+                Title = "Smart Suite API",
                 Version = "v1",
-                Description = "Sweet Manager API",
+                Description = "Smart Suite API",
                 TermsOfService = new Uri("https://acme-learning.com/tos"),
                 Contact = new OpenApiContact
                 {
-                    Name = "Sweet Manager Studios",
-                    Email = "contact@swm.com"
+                    Name = "Smart Suite Studios",
+                    Email = "contact@smart-suite.com"
                 },
                 License = new OpenApiLicense
                 {

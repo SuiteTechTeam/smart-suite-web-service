@@ -77,7 +77,7 @@ namespace SweetManagerIotWebService.API.IAM.Application.Internal.CommandServices
 
                 var token = tokenService.GenerateToken(new
                 {
-                    Id = user.Id,
+                    user.Id,
                     PasswordHash = userCredential.Code,
                     Role = "ROLE_OWNER",
                     Hotel = hotel

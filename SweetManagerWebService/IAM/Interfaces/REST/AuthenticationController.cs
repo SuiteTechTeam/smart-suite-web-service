@@ -84,31 +84,54 @@ namespace SweetManagerIotWebService.API.IAM.Interfaces.REST
         [AllowAnonymous]
         public async Task<IActionResult> SignIn([FromBody] SignInResource resource)
         {
+            if (resource.RoleId < 1 || resource.RoleId > 3)
+                return BadRequest("RoleId inválido. Debe ser 1 (Owner), 2 (Admin) o 3 (Guest).");
+
             try
             {
-                if (resource.RoleId is < 1 or > 3)
-                    throw new Exception();
-
                 var signInCommand = SignInCommandFromResourceAssembler.ToCommandFromResource(resource);
+                dynamic? authenticatedUser = null;
 
-                dynamic? authenticatedUser = "";
+                switch (resource.RoleId)
+                {
+                    case 1:
+                        authenticatedUser = await ownerCommandService.Handle(signInCommand);
+                        break;
+                    case 2:
+                        authenticatedUser = await adminCommandService.Handle(signInCommand);
+                        break;
+                    case 3:
+                        authenticatedUser = await guestCommandService.Handle(signInCommand);
+                        break;
+                }
 
-                if (resource.RoleId is 1) 
-                    authenticatedUser = await ownerCommandService.Handle(signInCommand);
-                else if (resource.RoleId is 2)
-                    authenticatedUser = await adminCommandService.Handle(signInCommand);
-                else if (resource.RoleId is 3)
-                    authenticatedUser = await guestCommandService.Handle(signInCommand);
+                if (authenticatedUser == null)
+                    return Unauthorized("Credenciales incorrectas o usuario no encontrado.");
+
+                var userProp = authenticatedUser.GetType().GetProperty("User");
+                var tokenProp = authenticatedUser.GetType().GetProperty("Token");
+                if (userProp == null || tokenProp == null)
+                    return Unauthorized("Respuesta de autenticación inválida.");
+
+                object? user = null;
+                string? token = null;
+                if (userProp != null)
+                    user = userProp.GetValue(authenticatedUser, null);
+                if (tokenProp != null)
+                    token = tokenProp.GetValue(authenticatedUser, null) as string;
+
+                if (user == null || string.IsNullOrEmpty(token))
+                    return Unauthorized("Credenciales incorrectas o usuario no encontrado.");
 
                 var authenticatedUserResource =
-                    AuthenticatedUserResourceFromEntityAssembler.ToResourceFromEntity(authenticatedUser!.User,
-                        authenticatedUser.Token);
+                    AuthenticatedUserResourceFromEntityAssembler.ToResourceFromEntity(user, token!);
 
                 return Ok(authenticatedUserResource);
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                // Loguear el error real en producción
+                return StatusCode(500, "Error interno al autenticar. " + ex.Message);
             }
         }
     }
