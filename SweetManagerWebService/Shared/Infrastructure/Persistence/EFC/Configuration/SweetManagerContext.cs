@@ -473,7 +473,12 @@ namespace SweetManagerWebService.Shared.Infrastructure.Persistence.EFC.Configura
                 entity.Property(e => e.Name)
                     .HasMaxLength(50)
                     .HasColumnName("name");
-                
+                entity.Property(e => e.CreatedDate)
+                    .HasColumnType("datetime")
+                    .HasColumnName("CreatedAt");
+                entity.Property(e => e.UpdatedDate)
+                    .HasColumnType("datetime")
+                    .HasColumnName("UpdatedAt");
             });
 
             modelBuilder.Entity<Room>(entity =>

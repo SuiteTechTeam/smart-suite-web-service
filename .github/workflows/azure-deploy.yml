@@ -1,0 +1,65 @@
+name: Build and Deploy to Azure App Service
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  AZURE_WEBAPP_NAME: smart-suite-web-service
+  AZURE_RESOURCE_GROUP: SuiteTechTeam
+  AZURE_CONTAINER_REGISTRY: smartsuitecontainer.azurecr.io
+  IMAGE_NAME: smartsuitewebservice
+  IMAGE_TAG: ${{ github.sha }}
+  ASPNETCORE_ENVIRONMENT: Production
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v3
+
+      - name: Configurar .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restaurar dependencias
+        run: dotnet restore SweetManagerWebService/SweetManagerWebService.csproj
+
+      - name: Compilar el proyecto
+        run: dotnet build SweetManagerWebService/SweetManagerWebService.csproj --configuration Release --no-restore
+
+      - name: Iniciar sesión en Azure Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.AZURE_CONTAINER_REGISTRY }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: Construir y etiquetar la imagen Docker
+        env:
+          APP_UID: 1000
+          ASPNETCORE_ENVIRONMENT: ${{ env.ASPNETCORE_ENVIRONMENT }}
+        run: |
+          docker build \
+            --build-arg APP_UID="${APP_UID}" \
+            --build-arg ASPNETCORE_ENVIRONMENT="${ASPNETCORE_ENVIRONMENT}" \
+            -t ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} ./SweetManagerWebService
+          docker tag ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+          docker tag ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+
+      - name: Subir la imagen al ACR
+        run: |
+          docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+          docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+
+      - name: Desplegar en Azure App Service
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          images: ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
