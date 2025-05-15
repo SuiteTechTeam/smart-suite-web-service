@@ -11,43 +11,58 @@ namespace SweetManagerWebService.IAM.Infrastructure.Persistence.EFC.Repositories
 public class AdminRepository(SweetManagerContext context) : BaseRepository<Admin>(context), IAdminRepository
 {
     public async Task<IEnumerable<Admin>> FindAllByHotelId(int hotelId)
-        => await (from ad in Context.Set<Admin>()
-            join nt in Context.Set<Notification>() on ad.Id equals nt.AdminsId
-            join ow in Context.Set<Owner>() on nt.OwnersId equals ow.Id
-            join ho in Context.Set<Hotel>() on ow.Id equals ho.OwnersId
+        => await Task.Run(() => (
+            from ad in Context.Set<Admin>().ToList()
+            join nt in Context.Set<Notification>().ToList()
+                on ad.Id equals nt.AdminsId
+            join ow in Context.Set<Owner>().ToList()
+                on nt.OwnersId equals ow.Id
+            join ho in Context.Set<Hotel>().ToList()
+                on ow.Id equals ho.OwnersId
             where ho.Id == hotelId
-            select ad)
-            .ToListAsync();
+            select ad
+        ).ToList());
 
 
     public async Task<Admin?> FindById(int id)
-        => await Context.Set<Admin>()
-            .Where(ad => ad.Id == id)
-            .FirstOrDefaultAsync();
+        => await Task.Run(() => (
+            from ad in Context.Set<Admin>().ToList()
+            where ad.Id == id
+            select ad
+        ).FirstOrDefault());
 
     public async Task<Admin?> FindByEmail(string email)
-        => await Context.Set<Admin>()
-            .Where(ad => ad.Email == email)
-            .FirstOrDefaultAsync();
+        => await Task.Run(() => (
+            from ad in Context.Set<Admin>().ToList()
+            where ad.Email == email
+            select ad
+        ).FirstOrDefault());
 
     public async Task<int?> FindIdByEmail(string email)
-        => await Context.Set<Admin>()
-            .Where(ad => ad.Email == email)
-            .Select(ad => ad.Id)
-            .FirstOrDefaultAsync();
+        => await Task.Run(() => (
+            from ad in Context.Set<Admin>().ToList()
+            where ad.Email == email
+                select ad.Id
+        ).FirstOrDefault());
 
     public async Task<bool> ExecuteUpdateAdminEmailAsync(string email, int id)
         => await Context.Set<Admin>().Where(a => a.Id == id).
-            ExecuteUpdateAsync(ad => ad.SetProperty(p => p.Email, email)) > 0;    public async Task<bool> ExecuteUpdateAdminPhoneAsync(int phone, int id)
+            ExecuteUpdateAsync(ad => ad.SetProperty(p => p.Email, email)) > 0;
+
+    public async Task<bool> ExecuteUpdateAdminPhoneAsync(int phone, int id)
         => await Context.Set<Admin>().Where(a => a.Id == id)
             .ExecuteUpdateAsync(a => a.SetProperty(p => p.Phone, phone)) > 0;
 
     public async Task<int?> FindHotelIdByAdminId(int id)
-        => await (from ad in Context.Set<Admin>()
-            join nt in Context.Set<Notification>() on ad.Id equals nt.AdminsId
-            join ow in Context.Set<Owner>() on nt.OwnersId equals ow.Id
-            join ho in Context.Set<Hotel>() on ow.Id equals ho.OwnersId
+        => await Task.Run(() => (
+            from ad in Context.Set<Admin>().ToList()
+            join nt in Context.Set<Notification>().ToList()
+                on ad.Id equals nt.AdminsId
+            join ow in Context.Set<Owner>().ToList()
+                on nt.OwnersId equals ow.Id
+            join ho in Context.Set<Hotel>().ToList()
+                on ow.Id equals ho.OwnersId
             where ad.Id == id
-            select ho.Id)
-            .FirstOrDefaultAsync();
+            select ho.Id
+        ).FirstOrDefault());
 }

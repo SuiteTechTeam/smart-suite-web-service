@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using sweetmanager.API.Shared.Domain.Repositories;
+﻿using sweetmanager.API.Shared.Domain.Repositories;
 using SweetManagerWebService.IAM.Domain.Model.Aggregates;
 using SweetManagerWebService.IAM.Domain.Model.Entities.Assignments;
 using SweetManagerWebService.IAM.Domain.Model.Entities.Roles;
@@ -12,20 +11,27 @@ namespace SweetManagerWebService.IAM.Infrastructure.Persistence.EFC.Repositories
 
 public class AssignmentWorkerRepository(SweetManagerContext context) : BaseRepository<AssignmentWorker>(context), IAssignmentWorkerRepository
 {
+
     public async Task<IEnumerable<AssignmentWorker>> FindByWorkerIdAsync(int workerId)
-        => await (from aw in Context.Set<AssignmentWorker>()
-            join wk in Context.Set<Worker>() on aw.WorkersId equals wk.Id
-            where wk.Id == workerId && aw.FinalDate > DateTime.Now
-            select aw)
-            .ToListAsync();
+        => await Task.Run(() => (
+            from aw in Context.Set<AssignmentWorker>().ToList()
+            join wk in Context.Set<Worker>().ToList() on aw.WorkersId equals wk.Id
+            where wk.Id.Equals(workerId) && aw.FinalDate > DateTime.Now
+            select aw
+        ).ToList());
 
     public async Task<IEnumerable<AssignmentWorker>> FindByAdminIdAsync(int adminId)
-        => await Context.Set<AssignmentWorker>()
-            .Where(aw => aw.AdminsId == adminId)
-            .ToListAsync();
+        => await Task.Run(() => (
+            from aw in Context.Set<AssignmentWorker>().ToList()
+            where aw.AdminsId.Equals(adminId)
+            select aw
+        ).ToList());
 
     public async Task<IEnumerable<AssignmentWorker>> FindByWorkerAreaIdAsync(int workerAreaId)
-        => await Context.Set<AssignmentWorker>()
-            .Where(aw => aw.WorkersAreasId == workerAreaId)
-            .ToListAsync();
+        => await Task.Run(() => (
+            from aw in Context.Set<AssignmentWorker>().ToList()
+            where aw.WorkersAreasId.Equals(workerAreaId)
+            select aw
+        ).ToList());
+
 }
