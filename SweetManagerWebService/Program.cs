@@ -138,6 +138,8 @@ builder.Services.AddSwaggerGen(
                     Url = new Uri("https://www.apache.org/licenses/LICENSE-2.0.html")
                 }
             });
+        
+
         c.EnableAnnotations();
         c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
         {
@@ -332,9 +334,16 @@ app.UseCors(
     b => b.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin()
 );
 
-app.UseSwagger();
+// Configuración de Swagger con versión explícita
+app.UseSwagger(c => {
+    c.RouteTemplate = "swagger/{documentName}/swagger.json";
+    c.SerializeAsV2 = false; // Asegurarse que use OpenAPI 3.0
+});
 
-app.UseSwaggerUI();
+app.UseSwaggerUI(c => {
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Smart Suite API v1");
+    c.RoutePrefix = "swagger";
+});
 
 app.UseRouting();
 
