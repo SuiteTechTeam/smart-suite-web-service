@@ -30,13 +30,21 @@ public partial class Guest
 
     public virtual ICollection<PaymentCustomer> PaymentCustomers { get; set; } = new List<PaymentCustomer>();
 
-    public virtual Role? Role { get; set; }
-
-    public Guest() { }
+    public virtual Role? Role { get; set; }    public Guest() { }
 
     public Guest(int id, string name, string surname, string phone, string email, string state, int roleId)
     {
         Id = id;
+        Name = name;
+        Surname = surname;
+        Phone = phone;
+        Email = email;
+        State = state;
+        RoleId = roleId;
+    }
+
+    public Guest(string name, string surname, string phone, string email, string state, int roleId)
+    {
         Name = name;
         Surname = surname;
         Phone = phone;

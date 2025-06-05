@@ -14,17 +14,16 @@ namespace SweetManagerIotWebService.API.IAM.Application.Internal.CommandServices
     public class GuestCommandService(IGuestRepository guestRepository,
         IHashingService hashingService, IUnitOfWork unitOfWork,
         IGuestCredentialRepository guestCredentialRepository, ITokenService tokenService) : IGuestCommandService
-    {
-        public async Task<Guest?> Handle(SignUpUserCommand command)
+    {        public async Task<Guest?> Handle(SignUpUserCommand command)
         {
             try
             {
                 if (await guestRepository.FindAllByFiltersAsync(command.Email, null, null) is not null)
                     throw new EmailAlreadyExistException();
 
-                // Add Admin
+                // Add Guest
 
-                var entity = new Guest(command.Id, command.Name, command.Surname, command.Phone,
+                var entity = new Guest(command.Name, command.Surname, command.Phone,
                     command.Email, "ACTIVE", 3);
 
                 await guestRepository.AddAsync(entity);

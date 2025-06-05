@@ -19,8 +19,7 @@ namespace SweetManagerIotWebService.API.IAM.Interfaces.REST
     IGuestCredentialCommandService guestCredentialCommandService,
     IOwnerCommandService ownerCommandService,
     IOwnerCredentialCommandService ownerCredentialCommandService) : ControllerBase
-    {
-        [HttpPost("sign-up-admin")]
+    {        [HttpPost("sign-up-admin")]
         [AllowAnonymous]
         public async Task<IActionResult> SignUpAdmin([FromBody] SignUpUserResource resource)
         {
@@ -30,7 +29,10 @@ namespace SweetManagerIotWebService.API.IAM.Interfaces.REST
 
                 var result = await adminCommandService.Handle(signUpCommand);
 
-                await adminCredentialCommandService.Handle(new Domain.Model.Commands.Credentials.CreateUserCredentialCommand(signUpCommand.Id, resource.Password));
+                if (result == null)
+                    return BadRequest("Error creating admin user");
+
+                await adminCredentialCommandService.Handle(new Domain.Model.Commands.Credentials.CreateUserCredentialCommand(result.Id, resource.Password));
 
                 return Ok();
             }
@@ -38,9 +40,7 @@ namespace SweetManagerIotWebService.API.IAM.Interfaces.REST
             {
                 return BadRequest(ex.Message);
             }
-        }
-
-        [HttpPost("sign-up-guest")]
+        }        [HttpPost("sign-up-guest")]
         [AllowAnonymous]
         public async Task<IActionResult> SignUpWorker([FromBody] SignUpUserResource resource)
         {
@@ -50,7 +50,10 @@ namespace SweetManagerIotWebService.API.IAM.Interfaces.REST
 
                 var result = await guestCommandService.Handle(signUpCommand);
 
-                await guestCredentialCommandService.Handle(new Domain.Model.Commands.Credentials.CreateUserCredentialCommand(resource.Id, resource.Password));
+                if (result == null)
+                    return BadRequest("Error creating guest user");
+
+                await guestCredentialCommandService.Handle(new Domain.Model.Commands.Credentials.CreateUserCredentialCommand(result.Id, resource.Password));
 
                 return Ok();
             }
@@ -58,9 +61,7 @@ namespace SweetManagerIotWebService.API.IAM.Interfaces.REST
             {
                 return BadRequest(ex.Message);
             }
-        }
-
-        [HttpPost("sign-up-owner")]
+        }        [HttpPost("sign-up-owner")]
         [AllowAnonymous]
         public async Task<IActionResult> SignUpOwner([FromBody] SignUpUserResource resource)
         {
@@ -70,7 +71,10 @@ namespace SweetManagerIotWebService.API.IAM.Interfaces.REST
 
                 var result = await ownerCommandService.Handle(signUpCommand);
 
-                await ownerCredentialCommandService.Handle(new Domain.Model.Commands.Credentials.CreateUserCredentialCommand(resource.Id, resource.Password));
+                if (result == null)
+                    return BadRequest("Error creating owner user");
+
+                await ownerCredentialCommandService.Handle(new Domain.Model.Commands.Credentials.CreateUserCredentialCommand(result.Id, resource.Password));
 
                 return Ok();
             }

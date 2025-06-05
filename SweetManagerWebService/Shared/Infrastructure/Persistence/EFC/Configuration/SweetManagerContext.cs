@@ -74,8 +74,7 @@ public partial class SweetManagerContext : DbContext
     public virtual DbSet<TypeRoom> TypeRooms { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<Admin>(entity =>
+    {        modelBuilder.Entity<Admin>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
@@ -83,7 +82,7 @@ public partial class SweetManagerContext : DbContext
 
             entity.HasIndex(e => e.RoleId, "role_id");
 
-            entity.Property(e => e.Id).HasColumnName("id").ValueGeneratedNever();
+            entity.Property(e => e.Id).HasColumnName("id").ValueGeneratedOnAdd();
             entity.Property(e => e.Email)
                 .HasMaxLength(50)
                 .HasColumnName("email");
@@ -211,15 +210,13 @@ public partial class SweetManagerContext : DbContext
             entity.HasOne(d => d.Subscription).WithMany(p => p.ContractOwners)
                 .HasForeignKey(d => d.SubscriptionId)
                 .HasConstraintName("contract_owners_ibfk_2");
-        });
-
-        modelBuilder.Entity<Guest>(entity =>
+        });        modelBuilder.Entity<Guest>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
             entity.ToTable("guests");
 
-            entity.Property(e => e.Id).HasColumnName("id").ValueGeneratedNever();
+            entity.Property(e => e.Id).HasColumnName("id").ValueGeneratedOnAdd();
 
             entity.HasIndex(e => e.RoleId, "role_id");
 
@@ -328,9 +325,7 @@ public partial class SweetManagerContext : DbContext
             entity.Property(e => e.Title)
                 .HasMaxLength(100)
                 .HasColumnName("title");
-        });
-
-        modelBuilder.Entity<Owner>(entity =>
+        });        modelBuilder.Entity<Owner>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
@@ -338,7 +333,7 @@ public partial class SweetManagerContext : DbContext
 
             entity.HasIndex(e => e.RoleId, "role_id");
 
-            entity.Property(e => e.Id).HasColumnName("id").ValueGeneratedNever();
+            entity.Property(e => e.Id).HasColumnName("id").ValueGeneratedOnAdd();
             entity.Property(e => e.Email)
                 .HasMaxLength(50)
                 .HasColumnName("email");

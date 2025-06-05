@@ -27,13 +27,21 @@ public partial class Admin
 
     public virtual Role? Role { get; set; }
 
-    public virtual Hotel? Hotel { get; set; }
-
-    public Admin() { }
+    public virtual Hotel? Hotel { get; set; }    public Admin() { }
 
     public Admin(int id, string name, string surname, string phone, string email, string state, int roleId)
     {
         Id = id;
+        Name = name;
+        Surname = surname;
+        Phone = phone;
+        Email = email;
+        State = state;
+        RoleId = roleId;
+    }
+
+    public Admin(string name, string surname, string phone, string email, string state, int roleId)
+    {
         Name = name;
         Surname = surname;
         Phone = phone;

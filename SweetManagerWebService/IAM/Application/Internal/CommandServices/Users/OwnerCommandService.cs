@@ -14,17 +14,16 @@ namespace SweetManagerIotWebService.API.IAM.Application.Internal.CommandServices
     public class OwnerCommandService(IOwnerRepository ownerRepository,
         IHashingService hashingService, IUnitOfWork unitOfWork,
         IOwnerCredentialRepository ownerCredentialRepository, ITokenService tokenService) : IOwnerCommandService
-    {
-        public async Task<Owner?> Handle(SignUpUserCommand command)
+    {        public async Task<Owner?> Handle(SignUpUserCommand command)
         {
             try
             {
                 if (await ownerRepository.FindAllByFiltersAsync(command.Email, null, null) is not null)
                     throw new EmailAlreadyExistException();
 
-                // Add Admin
+                // Add Owner
 
-                var entity = new Owner(command.Id, command.Name, command.Surname, command.Phone,
+                var entity = new Owner(command.Name, command.Surname, command.Phone,
                     command.Email, "ACTIVE", 1);
 
                 await ownerRepository.AddAsync(entity);

@@ -32,13 +32,21 @@ public partial class Owner
 
     public virtual ICollection<PaymentOwner> PaymentOwners { get; set; } = new List<PaymentOwner>();
 
-    public virtual Role? Role { get; set; }
-
-    public Owner() { }
+    public virtual Role? Role { get; set; }    public Owner() { }
 
     public Owner(int id, string name, string surname, string phone, string email, string state, int roleId)
     {
         Id = id;
+        Name = name;
+        Surname = surname;
+        Phone = phone;
+        Email = email;
+        State = state;
+        RoleId = roleId;
+    }
+
+    public Owner(string name, string surname, string phone, string email, string state, int roleId)
+    {
         Name = name;
         Surname = surname;
         Phone = phone;

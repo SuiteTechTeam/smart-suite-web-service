@@ -14,8 +14,7 @@ namespace SweetManagerIotWebService.API.IAM.Application.Internal.CommandServices
     public class AdminCommandService(IAdminRepository adminRepository,
         IHashingService hashingService, IUnitOfWork unitOfWork, 
         IAdminCredentialRepository adminCredentialRepository, ITokenService tokenService) : IAdminCommandService
-    {
-        public async Task<Admin?> Handle(SignUpUserCommand command)
+    {        public async Task<Admin?> Handle(SignUpUserCommand command)
         {
             try
             {
@@ -24,7 +23,7 @@ namespace SweetManagerIotWebService.API.IAM.Application.Internal.CommandServices
 
                 // Add Admin
 
-                var entity = new Admin(command.Id, command.Name, command.Surname, command.Phone,
+                var entity = new Admin(command.Name, command.Surname, command.Phone,
                     command.Email, "ACTIVE", 2);
 
                 await adminRepository.AddAsync(entity);
