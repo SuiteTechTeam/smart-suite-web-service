@@ -34,9 +34,10 @@ namespace SweetManagerIotWebService.API.IAM.Application.Internal.CommandServices
                 if (existingOwner is Owner || (existingOwner is IEnumerable<Owner> list && list.Any()))
                     throw new EmailAlreadyExistException();
 
-                // Add Owner
+                // Add Owner (asegúrate de que el ID no se asigne manualmente)
                 var entity = new Owner(command.Name, command.Surname, command.Phone,
                     command.Email, "ACTIVE", 1);
+                entity.Id = 0; // Forzar a que EF Core lo trate como nuevo y la DB asigne el ID
 
                 await ownerRepository.AddAsync(entity);
                 await unitOfWork.CommitAsync();
