@@ -18,23 +18,35 @@ namespace SweetManagerIotWebService.API.IAM.Application.Internal.CommandServices
         {
             try
             {
-                if (await ownerRepository.FindAllByFiltersAsync(command.Email, null, null) is not null)
+                // Validar campos requeridos
+                if (string.IsNullOrWhiteSpace(command.Name) ||
+                    string.IsNullOrWhiteSpace(command.Surname) ||
+                    string.IsNullOrWhiteSpace(command.Phone) ||
+                    string.IsNullOrWhiteSpace(command.Email) ||
+                    string.IsNullOrWhiteSpace("ACTIVE") ||
+                    1 <= 0)
+                {
+                    throw new Exception("Todos los campos obligatorios deben estar completos y válidos.");
+                }
+
+                // Validar email existente correctamente
+                var existingOwner = await ownerRepository.FindAllByFiltersAsync(command.Email, null, null);
+                if (existingOwner is Owner || (existingOwner is IEnumerable<Owner> list && list.Any()))
                     throw new EmailAlreadyExistException();
 
                 // Add Owner
-
                 var entity = new Owner(command.Name, command.Surname, command.Phone,
                     command.Email, "ACTIVE", 1);
 
                 await ownerRepository.AddAsync(entity);
-
                 await unitOfWork.CommitAsync();
 
                 return entity;
             }
             catch (Exception ex)
             {
-                throw new Exception($"An error occurred while creating the user: {ex.Message}");
+                var innerMessage = ex.InnerException != null ? $" InnerException: {ex.InnerException.Message}" : string.Empty;
+                throw new Exception($"An error occurred while creating the user: {ex.Message}{innerMessage}");
             }
         }
 
@@ -52,7 +64,8 @@ namespace SweetManagerIotWebService.API.IAM.Application.Internal.CommandServices
             }
             catch (Exception ex)
             {
-                throw new Exception($"An error occurred while updating the user: {ex.Message}");
+                var innerMessage = ex.InnerException != null ? $" InnerException: {ex.InnerException.Message}" : string.Empty;
+                throw new Exception($"An error occurred while updating the user: {ex.Message}{innerMessage}");
             }
         }
 
