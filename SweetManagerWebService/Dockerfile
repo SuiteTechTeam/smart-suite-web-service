@@ -9,11 +9,9 @@ EXPOSE 5000
 ENV ASPNETCORE_URLS=http://+:5000
 ARG ASPNETCORE_ENVIRONMENT
 ENV ASPNETCORE_ENVIRONMENT=$ASPNETCORE_ENVIRONMENT
-
-# Check if the user with the specified ID already exists, and if not, create a new user
+ARG APP_UID=1000
 RUN if ! id -u $APP_UID > /dev/null 2>&1; then adduser --disabled-password --gecos '' --uid $APP_UID appuser; fi
 USER $APP_UID
-
 
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
