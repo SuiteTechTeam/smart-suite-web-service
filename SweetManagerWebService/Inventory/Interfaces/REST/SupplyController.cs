@@ -7,7 +7,7 @@ using SweetManagerIotWebService.API.Inventory.Interfaces.REST.Transform;
 
 namespace SweetManagerIotWebService.API.Inventory.Interfaces.REST
 {
-    [Route("api/[controller]")]
+    [Route("api/v1/[controller]")]
     [ApiController]
     [Produces(MediaTypeNames.Application.Json)]
     public class SupplyController(ISupplyCommandService supplyCommandService, ISupplyQueryService supplyQueryService) : ControllerBase

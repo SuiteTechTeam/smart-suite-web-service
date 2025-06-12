@@ -7,7 +7,7 @@ using SweetManagerIotWebService.API.Reservations.Interfaces.REST.Transform.Room;
 
 namespace SweetManagerIotWebService.API.Reservations.Interfaces.REST;
 
-[Route("api/[controller]")]
+[Route("api/v1/[controller]")]
 [ApiController]
 [Produces(MediaTypeNames.Application.Json)]
 public class RoomController(IRoomCommandService roomCommandService, IRoomQueryService roomQueryService) : ControllerBase

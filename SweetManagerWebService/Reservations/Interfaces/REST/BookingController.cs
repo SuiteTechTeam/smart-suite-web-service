@@ -7,7 +7,7 @@ using SweetManagerIotWebService.API.Reservations.Interfaces.REST.Resources.Booki
 using SweetManagerIotWebService.API.Reservations.Interfaces.REST.Transform.Booking;
 
 namespace SweetManagerIotWebService.API.Reservations.Interfaces.REST;
-[Route("api/[controller]")]
+[Route("api/v1/[controller]")]
 [ApiController]
 [Produces(MediaTypeNames.Application.Json)]
 public class BookingController(IBookingQueryServices bookingQueryServices, IBookingCommandServices bookingCommandServices) : ControllerBase

@@ -68,6 +68,11 @@ using SweetManagerIotWebService.API.Communication.Application.Internal.QueryServ
 using SweetManagerIotWebService.API.Communication.Domain.Repositories;
 using SweetManagerIotWebService.API.Communication.Domain.Services;
 using SweetManagerIotWebService.API.Communication.Infrastructure.Persistence.EFC.Repositories;
+using SweetManagerWebService.IOT.Domain.Repositories;
+using SweetManagerWebService.IOT.Infrastructure.Persistence.EFC.Repositories;
+using SweetManagerWebService.IOT.Domain.Services;
+using SweetManagerWebService.IOT.Application.Internal.CommandServices;
+using SweetManagerWebService.IOT.Application.Internal.QueryServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -255,6 +260,18 @@ builder.Services.AddScoped<IProviderCommandService, ProviderCommandService>();
 builder.Services.AddScoped<IProviderQueryService, ProviderQueryService>();
 builder.Services.AddScoped<IProviderRepository, ProviderRepository>();
 
+// IOT Bounded context
+builder.Services.AddScoped<IIoTDeviceRepository, IoTDeviceRepository>();
+builder.Services.AddScoped<IIotDeviceCommandService, IotDeviceCommandService>();
+builder.Services.AddScoped<IIoTDeviceQueryService, IoTDeviceQueryService>();
+
+builder.Services.AddScoped<IRoomDeviceRepository, RoomDeviceRepository>();
+builder.Services.AddScoped<IRoomDeviceCommandService, RoomDeviceCommandService>();
+builder.Services.AddScoped<IRoomDeviceQueryService, RoomDeviceQueryService>();
+
+builder.Services.AddScoped<INotificationHistoryRepository, NotificationHistoryRepository>();
+builder.Services.AddScoped<INotificationHistoryCommandService, NotificationHistoryCommandService>();
+builder.Services.AddScoped<INotificationHistoryQueryService, NotificationHistoryQueryService>();
 
 // Shared Bounded context
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();

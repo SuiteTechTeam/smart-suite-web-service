@@ -1,9 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text.Json.Serialization;
-using SweetManagerIotWebService.API.Reservations.Domain.Commands.Room;
+﻿using SweetManagerIotWebService.API.Reservations.Domain.Commands.Room;
 using SweetManagerIotWebService.API.Reservations.Domain.Model.Commands.Room;
 using SweetManagerIotWebService.API.Reservations.Domain.Model.Entities;
+using SweetManagerWebService.IOT.Domain.Model.Aggregates;
+using System;
+using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace SweetManagerIotWebService.API.Reservations.Domain.Model.Aggregates;
 
@@ -16,6 +17,9 @@ public partial class Room
     
     [JsonIgnore]
     public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
+
+    [JsonIgnore]
+    public ICollection<RoomDevice> RoomDevices { get; set; }
 
     public virtual Hotel? Hotel { get; set; }
 

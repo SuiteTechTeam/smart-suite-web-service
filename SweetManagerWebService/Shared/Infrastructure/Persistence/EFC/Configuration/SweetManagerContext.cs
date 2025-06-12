@@ -12,6 +12,8 @@ using SweetManagerIotWebService.API.OrganizationalManagement.Domain.Model.Aggreg
 using SweetManagerIotWebService.API.Reservations.Domain.Model.Aggregates;
 using SweetManagerIotWebService.API.Reservations.Domain.Model.Entities;
 using SweetManagerIotWebService.API.Inventory.Domain.Model.Aggregates;
+using SweetManagerWebService.IOT.Domain.Model.Aggregates;
+using SweetManagerWebService.IOT.Domain.Model.Entities;
 
 namespace SweetManagerIotWebService.API.Shared.Infrastructure.Persistence.EFC.Configuration;
 
@@ -74,7 +76,8 @@ public partial class SweetManagerContext : DbContext
     public virtual DbSet<TypeRoom> TypeRooms { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {        modelBuilder.Entity<Admin>(entity =>
+    {
+        modelBuilder.Entity<Admin>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
@@ -210,7 +213,9 @@ public partial class SweetManagerContext : DbContext
             entity.HasOne(d => d.Subscription).WithMany(p => p.ContractOwners)
                 .HasForeignKey(d => d.SubscriptionId)
                 .HasConstraintName("contract_owners_ibfk_2");
-        });        modelBuilder.Entity<Guest>(entity =>
+        });
+
+        modelBuilder.Entity<Guest>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
@@ -307,6 +312,13 @@ public partial class SweetManagerContext : DbContext
                 .HasConstraintName("hotels_ibfk_1");
         });
 
+        modelBuilder.Entity<IoTDevice>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Name).HasMaxLength(100);
+        });
+
         modelBuilder.Entity<Notification>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
@@ -325,7 +337,21 @@ public partial class SweetManagerContext : DbContext
             entity.Property(e => e.Title)
                 .HasMaxLength(100)
                 .HasColumnName("title");
-        });        modelBuilder.Entity<Owner>(entity =>
+        });
+
+        modelBuilder.Entity<NotificationHistory>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Metric).HasMaxLength(100);
+
+            entity.HasOne(nh => nh.RoomDevice)
+                  .WithMany(rd => rd.NotificationHistories)
+                  .HasForeignKey(nh => nh.RoomDeviceId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Owner>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
@@ -472,6 +498,21 @@ public partial class SweetManagerContext : DbContext
             entity.HasOne(d => d.TypeRoom).WithMany(p => p.Rooms)
                 .HasForeignKey(d => d.TypeRoomId)
                 .HasConstraintName("rooms_ibfk_1");
+        });
+
+        modelBuilder.Entity<RoomDevice>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.HasOne(rd => rd.IoTDevice)
+                  .WithMany(d => d.RoomDevices)
+                  .HasForeignKey(rd => rd.IoTDeviceId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(rd => rd.Room)
+                  .WithMany(r => r.RoomDevices)
+                  .HasForeignKey(rd => rd.RoomId)
+                  .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<Subscription>(entity =>
