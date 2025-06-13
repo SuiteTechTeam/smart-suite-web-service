@@ -84,19 +84,6 @@ namespace SweetManagerWebService.IOT.Interfaces.REST
             return Ok(true);
         }
 
-        [HttpPut("notification-history/{id}")]
-        public async Task<IActionResult> UpdateNotificationHistory(int id, [FromBody] UpdateNotificationHistoryResource resource)
-        {
-            var result = await notificationHistoryCommandService.Handle
-                (UpdateNotificationHistoryCommandFromResourceAssembler
-                .ToCommandFromResource(resource));
-
-            if (result is false)
-                return BadRequest();
-
-            return Ok(true);
-        }
-
         [HttpGet("iot-devices")]
         public async Task<IActionResult> AllIotDevices()
         {

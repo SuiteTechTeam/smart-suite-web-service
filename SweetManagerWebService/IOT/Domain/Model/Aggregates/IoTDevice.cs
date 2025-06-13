@@ -2,7 +2,7 @@
 
 namespace SweetManagerWebService.IOT.Domain.Model.Aggregates
 {
-    public class IoTDevice
+    public partial class IoTDevice
     {
         public int Id { get; set; }
         public string Name { get; set; }

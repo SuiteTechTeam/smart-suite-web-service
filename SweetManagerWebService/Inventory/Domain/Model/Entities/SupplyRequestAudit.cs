@@ -6,9 +6,9 @@ namespace SweetManagerIotWebService.API.Inventory.Domain.Model.Entities;
 public partial class SupplyRequestAudit: IEntityWithCreatedUpdatedDate
 {
     [NotMapped]
-    [Column("Created At")] public DateTimeOffset? CreatedDate { get; set; }
+    [Column("CreatedAt")] public DateTimeOffset? CreatedDate { get; set; }
     
     [NotMapped]
-    [Column("Updated At")] public DateTimeOffset? UpdatedDate { get; set; }
+    [Column("UpdatedAt")] public DateTimeOffset? UpdatedDate { get; set; }
     
 }

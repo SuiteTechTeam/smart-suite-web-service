@@ -6,6 +6,6 @@ namespace SweetManagerWebService.IOT.Interfaces.REST.Transform
     public class NotificationHistoryResourceFromEntityAssembler
     {
         public static NotificationHistoryResource ToResourceFromEntity(NotificationHistory entity)
-            => new(entity.Id, entity.RoomDeviceId, entity.Metric);
+            => new(entity.Id, entity.RegistrationDate, entity.RoomDeviceId, entity.Metric);
     }
 }

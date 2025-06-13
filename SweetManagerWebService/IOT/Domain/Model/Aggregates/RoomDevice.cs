@@ -4,7 +4,7 @@ using SweetManagerWebService.IOT.Domain.Model.Entities;
 
 namespace SweetManagerWebService.IOT.Domain.Model.Aggregates
 {
-    public class RoomDevice
+    public partial class RoomDevice
     {
         public int Id { get; set; }
         public int IoTDeviceId { get; set; }

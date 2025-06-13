@@ -316,6 +316,8 @@ public partial class SweetManagerContext : DbContext
         {
             entity.HasKey(e => e.Id);
 
+            entity.ToTable("iot_devices");
+
             entity.Property(e => e.Name).HasMaxLength(100);
         });
 
@@ -342,6 +344,11 @@ public partial class SweetManagerContext : DbContext
         modelBuilder.Entity<NotificationHistory>(entity =>
         {
             entity.HasKey(e => e.Id);
+
+            entity.ToTable("notification_history");
+
+            entity.Property(e => e.RegistrationDate)
+                .HasColumnType("datetime");
 
             entity.Property(e => e.Metric).HasMaxLength(100);
 
@@ -503,6 +510,8 @@ public partial class SweetManagerContext : DbContext
         modelBuilder.Entity<RoomDevice>(entity =>
         {
             entity.HasKey(e => e.Id);
+
+            entity.ToTable("room_devices");
 
             entity.HasOne(rd => rd.IoTDevice)
                   .WithMany(d => d.RoomDevices)

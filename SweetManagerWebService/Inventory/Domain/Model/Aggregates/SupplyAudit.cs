@@ -5,7 +5,7 @@ namespace SweetManagerIotWebService.API.Inventory.Domain.Model.Aggregates;
 
 public partial class Supply : IEntityWithCreatedUpdatedDate
 {
-    [Column("Created At")] public DateTimeOffset? CreatedDate { get; set; }
+    [Column("CreatedAt")] public DateTimeOffset? CreatedDate { get; set; }
 
-    [Column("Updated At")] public DateTimeOffset? UpdatedDate { get; set; }
+    [Column("UpdatedAt")] public DateTimeOffset? UpdatedDate { get; set; }
 }
