@@ -72,11 +72,10 @@ namespace SweetManagerIotWebService.API.IAM.Application.Internal.CommandServices
 
                 var hotel = await guestRepository.FindHotelIdByIdAsync(user.Id);
 
-                hotel ??= 0;
-
-                var token = tokenService.GenerateToken(new
+                hotel ??= 0;                var token = tokenService.GenerateToken(new
                 {
                     Id = user.Id,
+                    Email = user.Email,
                     PasswordHash = userCredential.Code,
                     Role = "ROLE_GUEST",
                     Hotel = hotel

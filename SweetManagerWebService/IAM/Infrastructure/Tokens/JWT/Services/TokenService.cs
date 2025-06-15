@@ -18,19 +18,25 @@ namespace SweetManagerIotWebService.API.IAM.Infrastructure.Tokens.JWT.Services
 
             SigningCredentials credentials = new(securityKey, SecurityAlgorithms.HmacSha256);
 
-            string validationHotel = user.Hotel.ToString();
-
-            if (string.IsNullOrEmpty(user.Hotel.ToString()))
+            // Obtener valores de forma segura usando conversiones explícitas
+            string userId = user.Id.ToString();
+            string userRole = user.Role?.ToString() ?? "UNKNOWN_ROLE";
+            string userEmail = user.Email?.ToString() ?? userId;
+            
+            string validationHotel = "0";
+            if (user.Hotel != null && !string.IsNullOrEmpty(user.Hotel.ToString()))
             {
-                validationHotel = string.Empty;
+                validationHotel = user.Hotel.ToString();
             }
 
             Claim[]? claims =
             [
-                new Claim(ClaimTypes.Sid, user.Id.ToString()),
-                new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Role, user.Role),
-                new Claim(ClaimTypes.Locality, validationHotel)
+                new Claim(ClaimTypes.Sid, userId),
+                new Claim(ClaimTypes.Role, userRole),
+                new Claim(ClaimTypes.Locality, validationHotel),
+                new Claim(ClaimTypes.Email, userEmail),
+                new Claim("Email", userEmail),
+                new Claim("UserId", userId)
             ];
 
             JwtSecurityToken token = new(
@@ -42,9 +48,7 @@ namespace SweetManagerIotWebService.API.IAM.Infrastructure.Tokens.JWT.Services
             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
-        }
-
-        public dynamic? ValidateToken(string? token)
+        }        public dynamic? ValidateToken(string? token)
         {
             if (string.IsNullOrEmpty(token))
                 return null;
@@ -71,17 +75,30 @@ namespace SweetManagerIotWebService.API.IAM.Infrastructure.Tokens.JWT.Services
                 var principal = tokenHandler.ValidateToken(token, validationParameters, out var securityToken);
 
                 var result = (JwtSecurityToken)securityToken;
-
-                var id = Convert.ToInt32(result.Claims.First(claim => claim.Type == ClaimTypes.Sid).Value);
-
-                // Could encode to BASE 64 to prevent url errors.
-                var code = Convert.ToString(result.Claims.First(claim => claim.Type == ClaimTypes.Hash).Value);
-
-                var role = Convert.ToString(result.Claims.First(claim => claim.Type == ClaimTypes.Role).Value);
-
-                var hotel = Convert.ToString(result.Claims.First(claim => claim.Type == ClaimTypes.Locality).Value);
-
-                return new { Id = id, Code = code, Role = role, Hotel = hotel };
+                
+                // Obtener los claims de forma segura
+                var sidClaim = result.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.Sid);
+                var id = sidClaim != null ? Convert.ToInt32(sidClaim.Value) : 0;
+                
+                // Obtener email desde los claims
+                string email = id.ToString(); // Default: usar el ID como email si no hay email
+                
+                var emailClaim = result.Claims.FirstOrDefault(claim => claim.Type == "Email" || claim.Type == ClaimTypes.Email);
+                if (emailClaim != null && !string.IsNullOrEmpty(emailClaim.Value))
+                {
+                    email = emailClaim.Value;
+                }
+                
+                // Obtener rol
+                var roleClaim = result.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.Role);
+                var role = roleClaim != null ? Convert.ToString(roleClaim.Value) : "UNKNOWN_ROLE";
+                
+                // Obtener hotel
+                var hotelClaim = result.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.Locality);
+                var hotel = hotelClaim != null ? Convert.ToString(hotelClaim.Value) : "0";
+                
+                // Retornar objeto anónimo con la información del token
+                return new { Id = id, Email = email, Role = role, Hotel = hotel };
             }
             catch (Exception)
             {

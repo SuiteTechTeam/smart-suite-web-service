@@ -46,20 +46,26 @@ namespace SweetManagerIotWebService.API.IAM.Infrastructure.Pipeline.Middleware.C
                     return;
                 }
 
-                dynamic? validation = null;
+                dynamic? validation = null;                // Only if I have more than 1 Aggregate 
+                try {
+                    if (tokenResult.Role == "ROLE_ADMIN")
+                        validation = await adminQueryService.Handle(new GetUserByIdQuery(tokenResult.Id));
 
-                // Only if I have more than 1 Aggregate 
-                if (tokenResult.Role == "ROLE_ADMIN")
-                    validation = await adminQueryService.Handle(new GetUserByIdQuery(tokenResult.Id));
+                    else if (tokenResult.Role == "ROLE_GUEST")
+                        validation = await guestQueryService.Handle(new GetUserByIdQuery(tokenResult.Id));
 
-                else if (tokenResult.Role == "ROLE_GUEST")
-                    validation = await guestQueryService.Handle(new GetUserByIdQuery(tokenResult.Id));
+                    else if (tokenResult.Role == "ROLE_OWNER")
+                        validation = await ownerQueryService.Handle(new GetUserByIdQuery(tokenResult.Id));
 
-                else if (tokenResult.Role == "ROLE_OWNER")
-                    validation = await ownerQueryService.Handle(new GetUserByIdQuery(tokenResult.Id));
-
-                if (validation is null)
-                    throw new Exception("Invalid credentials!");
+                    if (validation is null)
+                        throw new Exception("Invalid credentials!");
+                        
+                    // Log para depuración
+                    logger.LogInformation($"Usuario validado: ID={tokenResult.Id}, Role={tokenResult.Role}, Email={tokenResult.Email}");
+                } catch (Exception ex) {
+                    logger.LogError(ex, "Error validando usuario desde token");
+                    throw;
+                }
 
                 context.Items["Credentials"] = tokenResult;
 

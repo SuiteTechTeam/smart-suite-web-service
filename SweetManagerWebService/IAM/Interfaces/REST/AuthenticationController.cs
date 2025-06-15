@@ -82,9 +82,7 @@ namespace SweetManagerIotWebService.API.IAM.Interfaces.REST
             {
                 return BadRequest(ex.Message);
             }
-        }
-
-        [HttpPost("sign-in")]
+        }        [HttpPost("sign-in")]
         [AllowAnonymous]
         public async Task<IActionResult> SignIn([FromBody] SignInResource resource)
         {
@@ -111,31 +109,35 @@ namespace SweetManagerIotWebService.API.IAM.Interfaces.REST
 
                 if (authenticatedUser == null)
                     return Unauthorized("Credenciales incorrectas o usuario no encontrado.");
-
+                    
                 var userProp = authenticatedUser.GetType().GetProperty("User");
                 var tokenProp = authenticatedUser.GetType().GetProperty("Token");
+                
                 if (userProp == null || tokenProp == null)
                     return Unauthorized("Respuesta de autenticación inválida.");
 
-                object? user = null;
-                string? token = null;
-                if (userProp != null)
-                    user = userProp.GetValue(authenticatedUser, null);
-                if (tokenProp != null)
-                    token = tokenProp.GetValue(authenticatedUser, null) as string;
+                object? user = userProp.GetValue(authenticatedUser, null);
+                string? token = tokenProp.GetValue(authenticatedUser, null) as string;
 
                 if (user == null || string.IsNullOrEmpty(token))
                     return Unauthorized("Credenciales incorrectas o usuario no encontrado.");
-
-                var authenticatedUserResource =
-                    AuthenticatedUserResourceFromEntityAssembler.ToResourceFromEntity(user, token!);
-
-                return Ok(authenticatedUserResource);
+                  try {
+                    // Convertir el objeto user a dynamic para acceder a sus propiedades
+                    dynamic dynamicUser = user;
+                    
+                    // Crear el recurso de respuesta
+                    var result = AuthenticatedUserResourceFromEntityAssembler.ToResourceFromEntity(dynamicUser, token);
+                    
+                    return Ok(result);
+                } catch (Exception ex) {
+                    // Captura específicamente errores relacionados con la conversión dinámica
+                    return StatusCode(500, "Error al procesar la autenticación: " + ex.Message);
+                }
             }
             catch (Exception ex)
             {
                 // Loguear el error real en producción
-                return StatusCode(500, "Error interno al autenticar. " + ex.Message);
+                return StatusCode(500, "Error interno al autenticar: " + ex.Message);
             }
         }
     }
