@@ -28,9 +28,9 @@ namespace SweetManagerIotWebService.API.IAM.Infrastructure.Tokens.JWT.Services
             Claim[]? claims =
             [
                 new Claim(ClaimTypes.Sid, user.Id.ToString()),
-            new Claim(ClaimTypes.Hash, user.PasswordHash),
-            new Claim(ClaimTypes.Role, user.Role),
-            new Claim(ClaimTypes.Locality, validationHotel)
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Role, user.Role),
+                new Claim(ClaimTypes.Locality, validationHotel)
             ];
 
             JwtSecurityToken token = new(
