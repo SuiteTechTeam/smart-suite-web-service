@@ -10,6 +10,7 @@ public class CreateTypeRoomCommandFromResourceAssembler
     {
         return new CreateTypeRoomCommand(
             resource.Description,
-            resource.Price);
+            resource.Price,
+            resource.HotelId);
     }
 }

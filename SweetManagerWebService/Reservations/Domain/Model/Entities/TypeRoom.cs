@@ -13,6 +13,8 @@ public partial class TypeRoom
 
     public decimal Price { get; set; }
 
+    public int HotelId { get; set; }
+
     public virtual ICollection<Room> Rooms { get; set; } = new List<Room>();
 
     public TypeRoom()
@@ -21,17 +23,19 @@ public partial class TypeRoom
         this.Price = 0;
     }
     
-    public TypeRoom(int id, string description, decimal price)
+    public TypeRoom(int id, string description, decimal price, int hotelId)
     {
         Id = id;
         Description = description;
         Price = price;
+        HotelId = hotelId;
     }
     
     public TypeRoom(CreateTypeRoomCommand command)
     {
         Description = command.Description;
         Price = command.Price;
+        HotelId = command.HotelId;
         
         Validate();
     }

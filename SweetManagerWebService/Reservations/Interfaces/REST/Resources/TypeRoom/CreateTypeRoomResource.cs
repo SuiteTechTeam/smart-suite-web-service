@@ -2,4 +2,5 @@
 
 public record CreateTypeRoomResource(
     string Description,
-    decimal Price);
+    decimal Price,
+    int HotelId);

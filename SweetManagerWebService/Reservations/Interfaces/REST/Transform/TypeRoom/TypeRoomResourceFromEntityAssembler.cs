@@ -8,6 +8,7 @@ public class TypeRoomResourceFromEntityAssembler
         new TypeRoomResource(
             entity.Id,
             entity.Description,
-            entity.Price
+            entity.Price,
+            entity.HotelId
         );
 }
